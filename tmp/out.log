@@ -1,0 +1,23 @@
+ * Serving Flask app 'minitwit' (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: on
+ * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+ * Running on http://10.26.38.220:8080/ (Press CTRL+C to quit)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 720-366-548
+10.26.38.220 - - [01/Feb/2022 13:36:19] "[32mGET / HTTP/1.1[0m" 302 -
+10.26.38.220 - - [01/Feb/2022 13:36:19] "GET /public HTTP/1.1" 200 -
+10.26.38.220 - - [01/Feb/2022 13:36:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+10.26.38.220 - - [01/Feb/2022 13:36:25] "GET /Johnnie%20Lesso HTTP/1.1" 200 -
+10.26.38.220 - - [01/Feb/2022 13:36:25] "GET /static/style.css HTTP/1.1" 200 -
+10.26.38.220 - - [01/Feb/2022 13:36:27] "GET /Johnnie%20Lesso HTTP/1.1" 200 -
+10.26.38.220 - - [01/Feb/2022 13:36:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+ * Detected change in '/Users/wachs/Git repos/itu-minitwit/minitwit.py', reloading
+We got a visitor from: 10.26.38.220
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 720-366-548
