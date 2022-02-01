@@ -1,10 +1,12 @@
+DB_LOCATION="./tmp/minitwit.db"
+
 if [ $1 = "init" ]; then
 
-    if [ -f "/tmp/minitwit.db" ]; then 
+    if [ -f DB_LOCATION ]; then 
         echo "Database already exists."
         exit 1
     fi
-    echo "Putting a database to /tmp/minitwit.db..."
+    echo "Putting a database to ${DB_LOCATION} ..." 
     python -c"from minitwit import init_db;init_db()"
 elif [ $1 = "start" ]; then
     echo "Starting minitwit..."
