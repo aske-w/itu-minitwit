@@ -1,15 +1,30 @@
-
-
-   
 <html>
+    <head>
+        <title>{{.Title}} | MiniTwit</title>
+        <link rel="stylesheet" type="text/css" href="/public/css/site.css" />
+    </head>
+    <body>
+        <div class=page>
+            <h1>MiniTwit</h1>
+            <div class=navigation>
+                <a href="/">public timeline</a> |
+                <a href="/">sign up</a> |
+                <a href="/">sign in</a>
+            </div>
+            
+            <div class=navigation>
+                <a href="/">my timeline</a> |
+                <a href="">public timeline</a> |
+                <a href="/">sign out [USERNAME]</a>
+            </div>
 
-<head>
-    <title>{{.Title}} | MiniTwit</title>
-    <link rel="stylesheet" type="text/css" href="/public/css/site.css" />
-</head>
+            <div class=body>
+                {{ yield }}
+            </div>
 
-<body>
-    {{ yield }}
-</body>
-
+            <div class=footer>
+                MiniTwit &mdash; A Flask Application
+            </div>
+        </div>
+    </body>
 </html>

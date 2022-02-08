@@ -5,7 +5,7 @@ import (
 	"github.com/kataras/iris/v12/mvc"
 )
 
-type UserController struct {
+type LoginController struct {
 	// context is auto-binded by Iris on each request,
 	// remember that on each incoming request iris creates a new UserController each time,
 	// so all fields are request-scoped by-default, only dependency injection is able to set
@@ -21,11 +21,11 @@ type UserController struct {
 	// Session *sessions.Session
 }
 
-func (c *UserController) Get() mvc.Result {
+func (c *LoginController) Get() mvc.Result {
 
 	return mvc.View{
 		Name: "login.html",
-		Data: iris.Map{"Title": "User Registration"},
+		Data: iris.Map{"Title": "Login page"},
 	}
 
 }

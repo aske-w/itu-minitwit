@@ -1,7 +1,10 @@
 package main
 
 import (
+	"aske-w/itu-minitwit/database/sqlite"
 	"aske-w/itu-minitwit/web/controllers"
+	"fmt"
+	"log"
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
@@ -19,9 +22,61 @@ type (
 	}
 )
 
+func initDatabase() {
+	fmt.Println("INIT DATABASE")
+
+	db, err := sqlite.ConnectSqlite()
+	if err != nil {
+		log.Fatalf("No database found: %v", err)
+	}
+
+	// db.Conn.Exec(`
+	// 	create table users (
+	// 		id integer primary key autoincrement,
+	// 		username string not null,
+	// 		email string not null,
+	// 		pw_hash string not null
+	// 	);
+	// `)
+
+	// db.Conn.Exec(`
+	// 	create table followers (
+	// 		who_id integer,
+	// 		whom_id integer
+	//   	);
+	// `)
+
+	// db.Conn.Exec(`
+	// 	create table messages (
+	// 		message_id integer primary key autoincrement,
+	// 		author_id integer not null,
+	// 		text string not null,
+	// 		pub_date integer,
+	// 		flagged integer
+	//   	);
+	// `)
+
+	db.Conn.Exec(`INSERT INTO users (username, email, pw_hash) values ('christian', 'cger@itu.dk', 'secret')`)
+
+	db.Conn.Exec(`INSERT INTO messages (author_id, text, pub_date, flagged) values (1, 'Tweet 1', 1000, false)`)
+	db.Conn.Exec(`INSERT INTO messages (author_id, text, pub_date, flagged) values (1, 'Tweet 1', 1000, false)`)
+	// db.Conn.Exec(`INSERT INTO products (product_id, product_name, product_price) values (2, 'Havestol', 1000)`)
+}
+
 func main() {
+	// initDatabase()
+	// connect to db
+
+	// db, err := sqlite.ConnectSqlite()
+	// if err != nil {
+	// 	log.Fatalf("error connecting to the MySQL database: %v", err)
+	// }
+	// query := `CREATE TABLE IF NOT EXISTS product(product_id int primary key auto_increment, product_name text,
+	//     product_price int, created_at datetime default CURRENT_TIMESTAMP, updated_at datetime default CURRENT_TIMESTAMP)`
+	// println(db.Conn.Exec(query))
+
 	app := iris.New()
-	app.Logger().SetLevel("debug") // more logging
+	// app.Logger().SetLevel("debug") // more logging
 
 	// Add html files
 	tmpl := iris.HTML("./web/views", ".html").
@@ -29,7 +84,6 @@ func main() {
 		Reload(true)
 	app.RegisterView(tmpl)
 	app.HandleDir("/public", "./web/public")
-	// app.HandleDir("/public", iris.Dir("./web/public"))
 
 	// Register default error view
 	app.OnAnyErrorCode(func(ctx iris.Context) {
@@ -39,18 +93,13 @@ func main() {
 
 	index := mvc.New(app.Party("/"))
 	index.Handle(new(controllers.IndexController))
+	// // index.Handle(new(controllers.IndexController))
 
-	user := mvc.New(app.Party("/user"))
-	user.Handle(new(controllers.UserController))
+	// login := mvc.New(app.Party("/login"))
+	// login.Handle(new(controllers.LoginController))
 
-	// app.Handle("GET", "/", indexHandler)
+	// user := mvc.New(app.Party("/user"))
+	// user.Handle(new(controllers.UserController))
+
 	app.Listen(":8080")
-}
-
-func indexHandler(ctx iris.Context) {
-	resp := response{
-		ID:      "1",
-		Message: "updated successfully",
-	}
-	ctx.JSON(resp)
 }
