@@ -1,12 +1,14 @@
 package main
 
 import (
-	"aske-w/itu-minitwit/database/sqlite"
+	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/web/controllers"
 	"fmt"
 	"log"
 
 	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/middleware/logger"
+	"github.com/kataras/iris/v12/middleware/recover"
 	"github.com/kataras/iris/v12/mvc"
 )
 
@@ -25,7 +27,7 @@ type (
 func initDatabase() {
 	fmt.Println("INIT DATABASE")
 
-	db, err := sqlite.ConnectSqlite()
+	db, err := database.ConnectSqlite()
 	if err != nil {
 		log.Fatalf("No database found: %v", err)
 	}
@@ -78,6 +80,9 @@ func main() {
 	app := iris.New()
 	// app.Logger().SetLevel("debug") // more logging
 
+	app.Use(logger.New())  // logs request
+	app.Use(recover.New()) // handles panics (shows 404)
+
 	// Add html files
 	tmpl := iris.HTML("./web/views", ".html").
 		Layout("shared/layout.html").
@@ -92,14 +97,14 @@ func main() {
 	})
 
 	index := mvc.New(app.Party("/"))
+
+	db, err := database.ConnectSqlite()
+	if err != nil {
+		log.Fatalf("error connecting to the database: %v", err)
+	}
+
+	index.Register(db)
 	index.Handle(new(controllers.IndexController))
-	// // index.Handle(new(controllers.IndexController))
-
-	// login := mvc.New(app.Party("/login"))
-	// login.Handle(new(controllers.LoginController))
-
-	// user := mvc.New(app.Party("/user"))
-	// user.Handle(new(controllers.UserController))
 
 	app.Listen(":8080")
 }
