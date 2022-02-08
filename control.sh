@@ -11,7 +11,7 @@ if [ "$1" = "init" ]; then
     python3 -c"from minitwit import init_db;init_db()"
 elif [ "$1" = "start" ]; then
     echo "Starting minitwit..."
-    nohup "which python3" minitwit.py > ./tmp/out.log 2>&1 &
+    nohup `which python3` minitwit.py > ./tmp/out.log 2>&1 &
 elif [ "$1" = "stop" ]; then
     echo "Stopping minitwit..."
     pkill -f minitwit
