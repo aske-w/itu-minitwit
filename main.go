@@ -10,6 +10,7 @@ import (
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/sessions"
 )
 
 type (
@@ -66,22 +67,16 @@ func initDatabase() {
 }
 
 func main() {
-	// initDatabase()
-	// connect to db
-
-	// db, err := sqlite.ConnectSqlite()
-	// if err != nil {
-	// 	log.Fatalf("error connecting to the MySQL database: %v", err)
-	// }
-	// query := `CREATE TABLE IF NOT EXISTS product(product_id int primary key auto_increment, product_name text,
-	//     product_price int, created_at datetime default CURRENT_TIMESTAMP, updated_at datetime default CURRENT_TIMESTAMP)`
-	// println(db.Conn.Exec(query))
 
 	app := iris.New()
-	// app.Logger().SetLevel("debug") // more logging
+	app.Logger().SetLevel("debug") // more logging
 
 	app.Use(logger.New())  // logs request
 	app.Use(recover.New()) // handles panics (shows 404)
+
+	// Configure sessions manager.
+	sess := sessions.New(sessions.Config{Cookie: "itu-minitwit-cookie"})
+	app.Use(sess.Handler())
 
 	// Add html files
 	tmpl := iris.HTML("./web/views", ".html").
@@ -96,15 +91,20 @@ func main() {
 		ctx.View("shared/error.html")
 	})
 
-	index := mvc.New(app.Party("/"))
-
 	db, err := database.ConnectSqlite()
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
 
+	// I cant figure out how to have global DI, when using MVC pattern?
+	index := mvc.New(app.Party("/"))
+	// register db in dependecy injection container
 	index.Register(db)
 	index.Handle(new(controllers.IndexController))
+	login := mvc.New(app.Party("/login"))
+	// register db in dependecy injection container
+	login.Register(db)
+	login.Handle(new(controllers.LoginController))
 
 	app.Listen(":8080")
 }

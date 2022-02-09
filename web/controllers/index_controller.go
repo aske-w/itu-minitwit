@@ -13,22 +13,15 @@ import (
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/sessions"
 )
 
 type IndexController struct {
-	// context is auto-binded by Iris on each request,
-	// remember that on each incoming request iris creates a new UserController each time,
-	// so all fields are request-scoped by-default, only dependency injection is able to set
-	// custom fields like the Service which is the same for all requests (static binding)
-	// and the Session which depends on the current context (dynamic binding).
 	Ctx iris.Context
 
-	// // Our UserService, it's an interface which
-	// // is binded from the main application.
-	// Service services.UserService
 	DB *database.SQLite
-	// // Session, binded using dependency injection from the main.go.
-	// Session *sessions.Session
+	// Session, binded using dependency injection from the main.go.
+	Session *sessions.Session
 }
 
 type User struct {
@@ -148,24 +141,18 @@ func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 func (c *IndexController) Get() mvc.Result {
 
 	var messages entity.Messages
-	var users entity.Users
+
 	err := c.DB.Select(c.Ctx, &messages, "SELECT * FROM messages")
-	err2 := c.DB.Select(c.Ctx, &users, "SELECT * FROM users")
+
 	if err != nil {
 		log.Fatalln(err)
-	}
-	if err2 != nil {
-		log.Fatalln(err2)
 	}
 
 	for i := 0; i < len(messages); i++ {
 		fmt.Println(messages[i])
 
 	}
-	for i := 0; i < len(users); i++ {
-		fmt.Println(users[i])
 
-	}
 	// messages := getMessages()
 
 	return mvc.View{
