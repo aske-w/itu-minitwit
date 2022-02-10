@@ -22,7 +22,7 @@ func (c *LogoutController) Get() mvc.Result {
 
 	c.Ctx.Redirect("/")
 	return mvc.View{
-		Name: "index.html",
+		Name: "timeline.html",
 		Data: iris.Map{"Title": "Logout"},
 	}
 }

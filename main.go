@@ -67,16 +67,16 @@ func initDatabase() {
 }
 
 func before(ctx iris.Context) {
-	shareInformation := "this is a sharable information between handlers"
+	// shareInformation := "this is a sharable information between handlers"
 
-	requestPath := ctx.Path()
-	println("Before the indexHandler or contactHandler: " + requestPath)
+	// requestPath := ctx.Path()
+	// println("Before the indexHandler or contactHandler: " + requestPath)
 
-	// if ctx.Session {
-	// }
+	// // if ctx.Session {
+	// // }
 
-	// ctx.SetUser()
-	ctx.Values().Set("info", shareInformation)
+	// // ctx.SetUser()
+	// ctx.Values().Set("info", shareInformation)
 	ctx.Next()
 }
 
@@ -114,6 +114,7 @@ func main() {
 	index := mvc.New(app.Party("/"))
 	// register db in dependecy injection container
 	index.Register(db)
+
 	index.Handle(new(controllers.IndexController))
 
 	login := mvc.New(app.Party("/login"))

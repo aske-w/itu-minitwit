@@ -84,11 +84,44 @@ func public_timeline(c *IndexController) []*Timeline {
 	return timeline
 }
 
+func (c *IndexController) UserId() string {
+	return c.Session.GetString("user_id")
+}
+func (c *IndexController) User() (entity.User, error) {
+	return utils.GetUserById(c.UserId(), c.DB, c.Ctx)
+}
+func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
+
+	b.Handle("GET", "/{username:string}", "UserTimelineHandler")
+}
+
+func (c *IndexController) UserTimelineHandler(username string) mvc.View {
+	profile_user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
+	if err != nil {
+		return mvc.View{
+			// Name: "error.html",
+			Data: iris.Map{"Message": "User not found"},
+			Code: 404,
+		}
+	}
+	var followed bool
+	c.DB.Get(c.Ctx, &followed, `
+	select 1 from follower where
+            follower.who_id = ? and follower.whom_id = ?
+	`, 18, profile_user.ID)
+	fmt.Println("followed", followed, profile_user.ID)
+	return mvc.View{
+		// Name: "shared/error.html",
+		Data: iris.Map{"Message": "User not found"},
+		Code: 404,
+	}
+}
+
 func (c *IndexController) GetPublic() mvc.Result {
 	messages := public_timeline(c)
 	return mvc.View{
-		Name: "index.html",
-		Data: iris.Map{"Title": "Index page", "Messages": messages, "User": nil, "LoggedIn": false},
+		Name: "timeline.html",
+		Data: iris.Map{"Title": "Public timeline", "Messages": messages, "User": nil, "LoggedIn": false},
 	}
 
 }
@@ -137,8 +170,8 @@ func (c *IndexController) Get() mvc.Result {
 	}
 
 	return mvc.View{
-		Name: "index.html",
-		Data: iris.Map{"Title": "Index page", "Messages": messages, "User": user, "LoggedIn": loggedIn},
+		Name: "timeline.html",
+		Data: iris.Map{"Title": "My timeline", "Messages": messages, "User": user, "LoggedIn": loggedIn},
 	}
 
 }
