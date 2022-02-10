@@ -3,11 +3,10 @@ package controllers
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/entity"
+	"aske-w/itu-minitwit/web/utils"
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -22,18 +21,6 @@ type IndexController struct {
 	DB *database.SQLite
 	// Session, binded using dependency injection from the main.go.
 	Session *sessions.Session
-}
-
-type User struct {
-	Id       int
-	Username string
-	Email    string
-	Pw_hash  string
-}
-
-type Follower struct {
-	Who_id  int
-	Whom_id int
 }
 
 type Timeline struct {
@@ -51,80 +38,6 @@ type Timeline struct {
 }
 
 type Timelines []*Timeline
-
-// type Message struct {
-// 	Message_id int
-// 	Author_id  int
-// 	Text       string
-// 	Pub_date   int
-// 	Flagged    int
-// }
-
-func getMessages() []entity.Message {
-
-	db, err := database.ConnectSqlite()
-	if err != nil {
-		log.Fatalf("error connecting to the database: %v", err)
-	}
-
-	rows, err := db.Conn.Query(`SELECT * FROM message`)
-
-	if err != nil {
-		log.Fatalf("2: error selecting all messages: %v", err)
-	}
-
-	messages := make([]entity.Message, 0)
-
-	for rows.Next() {
-		message := entity.Message{}
-		err = rows.Scan(&message.Message_id, &message.Author_id, &message.Text, &message.Pub_date, &message.Flagged)
-		if err != nil {
-			log.Fatalf("error scanning rows %v", err)
-		}
-
-		messages = append(messages, message)
-	}
-
-	return messages
-}
-
-func getUserByUsername(username string) *int {
-	db, err := database.ConnectSqlite()
-	checkError(err)
-
-	rows, err := db.Conn.Query(`select id, username, email, pw_hash from users where username = ?`, username)
-	defer rows.Close()
-	checkError(err)
-
-	if rows.Next() {
-		user := User{}
-		err = rows.Scan(&user.Id, &user.Username, &user.Email, &user.Pw_hash)
-		checkError(err)
-
-		return &user.Id
-	}
-
-	return nil
-}
-
-func getUserById(id int) (*User, error) {
-	db, err := database.ConnectSqlite()
-	checkError(err)
-
-	rows, err := db.Conn.Query(`select id, username, email, pw_hash from users where id = ?`, id)
-	defer rows.Close()
-	checkError(err)
-
-	if rows.Next() {
-		user := User{}
-		err = rows.Scan(&user.Id, &user.Username, &user.Email, &user.Pw_hash)
-		checkError(err)
-
-		return &user, nil
-	}
-
-	return nil, errors.New("Can't find user with given id")
-}
 
 //     """Format a timestamp for display."""
 func format_datetime(timestamp int) string {
@@ -151,7 +64,7 @@ func public_timeline(c *IndexController) []*Timeline {
 	// var timeline Timeline
 
 	rows, err := c.DB.Conn.Query(" SELECT * FROM users INNER JOIN message ON message.author_id = users.id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 10)
-	checkError(err)
+	utils.CheckError(err)
 	defer rows.Close()
 
 	timeline := make(Timelines, 0)
@@ -163,7 +76,7 @@ func public_timeline(c *IndexController) []*Timeline {
 		}
 		// user := entity.User{}
 		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
-		checkError(err)
+		utils.CheckError(err)
 		// group.Gravatar = gravatar_url
 		timeline = append(timeline, group)
 	}
@@ -173,28 +86,21 @@ func public_timeline(c *IndexController) []*Timeline {
 
 func (c *IndexController) Get() mvc.Result {
 
-	// var messages entity.Messages
-
-	// err := c.DB.Select(c.Ctx, &messages, "SELECT * from message desc limit ?", 10)
-	// checkError(err)
-
-	// for i := 0; i < len(messages); i++ {
-	// 	fmt.Println(messages[i])
-
-	// }
 	messages := public_timeline(c)
 
-	// messages := getMessages()
+	userId, exists := utils.GetUserIdFromSession(c.Session)
+	var user entity.User
+	if exists {
+		_user, err := utils.GetUserById(userId, c.DB, c.Ctx)
+		utils.CheckError(err)
+
+		user = _user
+	}
+
 	c.Session.Get("user_id")
 	return mvc.View{
 		Name: "index.html",
-		Data: iris.Map{"Title": "Index page", "Messages": messages},
+		Data: iris.Map{"Title": "Index page", "Messages": messages, "User": user, "LoggedIn": exists},
 	}
 
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
 }

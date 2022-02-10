@@ -3,6 +3,7 @@ package controllers
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/entity"
+	"aske-w/itu-minitwit/web/utils"
 
 	"fmt"
 
@@ -48,7 +49,7 @@ func (c *LoginController) Post() mvc.Result {
 
 }
 func (c *LoginController) Get() mvc.Result {
-	_, loggedIn := getUserFromSession(c.Session)
+	_, loggedIn := utils.GetUserIdFromSession(c.Session)
 	if loggedIn {
 		c.Ctx.Redirect("/")
 	}
@@ -57,15 +58,4 @@ func (c *LoginController) Get() mvc.Result {
 		Data: iris.Map{"Title": "Login page"},
 	}
 
-}
-
-/*
-Returns the user_id from the session as the first in the tuple and if it was succesful in the second part
-*/
-func getUserFromSession(session *sessions.Session) (string, bool) {
-	user_id := session.GetString("user_id")
-	if len(user_id) == 0 {
-		return "", false
-	}
-	return user_id, true
 }

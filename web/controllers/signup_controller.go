@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"aske-w/itu-minitwit/database"
+	"aske-w/itu-minitwit/web/utils"
 	"fmt"
 
 	"github.com/kataras/iris/v12"
@@ -34,29 +35,33 @@ func (c *SignupController) Post() mvc.Result {
 		error = "You have to enter a password"
 	} else if password2 != password {
 		error = "The two passwords do not match"
-	} else if getUserByUsername(username) != nil {
-		error = "The username is already taken"
 	} else {
 
-		fmt.Println("REACHED 1")
-		byteHash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+		_, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
 
-		fmt.Println("REACHED hash 2" + string(byteHash))
 		if err != nil {
-			error = err.Error()
+			error = "The username is already taken"
 		} else {
-			fmt.Println("INSERTING")
-			_, err := c.DB.Conn.Exec(`insert into users (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
 
+			fmt.Println("REACHED 1")
+			byteHash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+
+			fmt.Println("REACHED hash 2" + string(byteHash))
 			if err != nil {
 				error = err.Error()
 			} else {
-				c.Ctx.Redirect("/login")
+				fmt.Println("INSERTING")
+				_, err := c.DB.Conn.Exec(`insert into users (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
+
+				if err != nil {
+					error = err.Error()
+				} else {
+					c.Ctx.Redirect("/login")
+				}
 			}
+
 		}
-
 	}
-
 	return mvc.View{
 		Name: "signup.html",
 		Data: iris.Map{"Title": "Signup page", "error": error},
@@ -64,7 +69,7 @@ func (c *SignupController) Post() mvc.Result {
 }
 
 func (c *SignupController) Get() mvc.Result {
-	_, loggedIn := getUserFromSession(c.Session)
+	_, loggedIn := utils.GetUserIdFromSession(c.Session)
 	if loggedIn {
 		c.Ctx.Redirect("/")
 	}
