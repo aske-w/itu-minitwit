@@ -107,6 +107,10 @@ func main() {
 	login.Register(db)
 	login.Handle(new(controllers.LoginController))
 
+	logout := mvc.New(app.Party("/logout"))
+	logout.Register(db)
+	logout.Handle(new(controllers.LogoutController))
+
 	signup := mvc.New(app.Party("/signup"))
 	signup.Register(db)
 	signup.Handle(new(controllers.SignupController))

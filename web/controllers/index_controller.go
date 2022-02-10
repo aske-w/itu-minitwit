@@ -171,13 +171,6 @@ func public_timeline(c *IndexController) []*Timeline {
 	return timeline
 }
 
-// https://docs.iris-go.com/iris/contents/sessions
-// func beforeRequest(){}
-
-func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
-
-}
-
 func (c *IndexController) Get() mvc.Result {
 
 	// var messages entity.Messages
