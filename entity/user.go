@@ -3,7 +3,7 @@ package entity
 import "database/sql"
 
 type User struct {
-	ID       int64  `db:"user_id" json:"id"`
+	ID       int64  `db:"id" json:"id"`
 	Username string `db:"username" json:"username"`
 	Email    string `db:"email" json:"email"`
 	Pw_Hash  string `db:"pw_hash" json:"pw_hash"`
@@ -16,7 +16,7 @@ func (p User) TableName() string {
 
 // PrimaryKey returns the primary key of a Product.
 func (p *User) PrimaryKey() string {
-	return "user_id"
+	return "id"
 }
 
 // SortBy returns the column name that

@@ -88,11 +88,11 @@ func getMessages() []entity.Message {
 	return messages
 }
 
-func getUserByUsername(username string) (*User, error) {
+func getUserByUsername(username string) *int {
 	db, err := database.ConnectSqlite()
 	checkError(err)
 
-	rows, err := db.Conn.Query(`select id, username, email, pw_hash from user where username = ?`, username)
+	rows, err := db.Conn.Query(`select id, username, email, pw_hash from users where username = ?`, username)
 	defer rows.Close()
 	checkError(err)
 
@@ -101,17 +101,17 @@ func getUserByUsername(username string) (*User, error) {
 		err = rows.Scan(&user.Id, &user.Username, &user.Email, &user.Pw_hash)
 		checkError(err)
 
-		return &user, nil
+		return &user.Id
 	}
 
-	return nil, errors.New("Can't find user with given username")
+	return nil
 }
 
 func getUserById(id int) (*User, error) {
 	db, err := database.ConnectSqlite()
 	checkError(err)
 
-	rows, err := db.Conn.Query(`select id, username, email, pw_hash from user where id = ?`, id)
+	rows, err := db.Conn.Query(`select id, username, email, pw_hash from users where id = ?`, id)
 	defer rows.Close()
 	checkError(err)
 
@@ -150,7 +150,7 @@ func gravatar_url(email string, size int) string {
 func public_timeline(c *IndexController) []*Timeline {
 	// var timeline Timeline
 
-	rows, err := c.DB.Conn.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 10)
+	rows, err := c.DB.Conn.Query(" SELECT * FROM users INNER JOIN message ON message.author_id = users.id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 10)
 	checkError(err)
 	defer rows.Close()
 
