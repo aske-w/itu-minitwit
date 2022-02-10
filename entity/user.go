@@ -3,7 +3,7 @@ package entity
 import "database/sql"
 
 type User struct {
-	User_id  int64  `db:"id" json:"id"`
+	User_id  int    `db:"id" json:"id"`
 	Username string `db:"username" json:"username"`
 	Email    string `db:"email" json:"email"`
 	Pw_Hash  string `db:"pw_hash" json:"pw_hash"`

@@ -61,9 +61,9 @@ func gravatar_url(email string, size int) string {
 }
 
 func public_timeline(c *IndexController) []*Timeline {
-	// var timeline Timeline
 
 	rows, err := c.DB.Conn.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 10)
+
 	utils.CheckError(err)
 	defer rows.Close()
 
@@ -74,10 +74,61 @@ func public_timeline(c *IndexController) []*Timeline {
 			Gravatar_Url:    gravatar_url,
 			Format_Datetime: format_datetime,
 		}
-		// user := entity.User{}
 		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
 		utils.CheckError(err)
-		// group.Gravatar = gravatar_url
+		timeline = append(timeline, group)
+	}
+
+	return timeline
+}
+
+func private_timeline(c *IndexController, userId string) []*Timeline {
+	rows, err := c.DB.Conn.Query(`
+	select  user.*, message.* from message, user
+	where message.flagged = 0 and message.author_id = user.user_id and (
+		user.user_id = ? or
+		user.user_id in (select whom_id from follower
+								where who_id = ?))
+	order by message.pub_date desc limit ?`, userId, userId, 10)
+
+	utils.CheckError(err)
+	defer rows.Close()
+
+	timeline := make(Timelines, 0)
+
+	for rows.Next() {
+		group := &Timeline{
+			Gravatar_Url:    gravatar_url,
+			Format_Datetime: format_datetime,
+		}
+
+		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
+		utils.CheckError(err)
+		timeline = append(timeline, group)
+	}
+
+	return timeline
+}
+
+func user_timeline(c *IndexController, userId int) []*Timeline {
+	rows, err := c.DB.Conn.Query(`
+	select  user.*, message.* from message, user where
+	user.user_id = message.author_id and user.user_id = ?
+	order by message.pub_date desc limit ?`, userId, 30)
+
+	utils.CheckError(err)
+	defer rows.Close()
+
+	timeline := make(Timelines, 0)
+
+	for rows.Next() {
+		group := &Timeline{
+			Gravatar_Url:    gravatar_url,
+			Format_Datetime: format_datetime,
+		}
+
+		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
+		utils.CheckError(err)
 		timeline = append(timeline, group)
 	}
 
@@ -96,10 +147,11 @@ func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 }
 
 func (c *IndexController) UserTimelineHandler(username string) mvc.View {
+	user, _ := c.User()
 	profile_user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
 	if err != nil {
 		return mvc.View{
-			// Name: "error.html",
+
 			Data: iris.Map{"Message": "User not found"},
 			Code: 404,
 		}
@@ -109,11 +161,12 @@ func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 	select 1 from follower where
             follower.who_id = ? and follower.whom_id = ?
 	`, 18, profile_user.User_id)
+
+	messages := user_timeline(c, profile_user.User_id)
 	fmt.Println("followed", followed, profile_user.User_id)
 	return mvc.View{
-		// Name: "shared/error.html",
-		Data: iris.Map{"Message": "User not found"},
-		Code: 404,
+		Name: "timeline.html",
+		Data: iris.Map{"Title": profile_user.Username + "'s timeline", "Messages": messages, "User": user, "LoggedIn": user.User_id > 0},
 	}
 }
 
@@ -126,34 +179,6 @@ func (c *IndexController) GetPublic() mvc.Result {
 
 }
 
-func private_timeline(c *IndexController, userId string) []*Timeline {
-	rows, err := c.DB.Conn.Query(`
-	select message.*, user.* from message, user
-	where message.flagged = 0 and message.author_id = user.user_id and (
-		user.user_id = ? or
-		user.user_id in (select whom_id from follower
-								where who_id = ?))
-	order by message.pub_date desc limit ?`, userId, userId, 10)
-	utils.CheckError(err)
-	defer rows.Close()
-
-	timeline := make(Timelines, 0)
-
-	for rows.Next() {
-		group := &Timeline{
-			Gravatar_Url:    gravatar_url,
-			Format_Datetime: format_datetime,
-		}
-		// user := entity.User{}
-		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
-		utils.CheckError(err)
-		// group.Gravatar = gravatar_url
-		timeline = append(timeline, group)
-	}
-
-	return timeline
-}
-
 func (c *IndexController) Get() mvc.Result {
 
 	var messages []*Timeline
@@ -164,6 +189,7 @@ func (c *IndexController) Get() mvc.Result {
 		_user, err := utils.GetUserById(userId, c.DB, c.Ctx)
 		utils.CheckError(err)
 		messages = private_timeline(c, userId)
+
 		user = _user
 	} else {
 		c.Ctx.Redirect("/public")
