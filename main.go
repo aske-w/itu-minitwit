@@ -101,10 +101,15 @@ func main() {
 	// register db in dependecy injection container
 	index.Register(db)
 	index.Handle(new(controllers.IndexController))
+
 	login := mvc.New(app.Party("/login"))
 	// register db in dependecy injection container
 	login.Register(db)
 	login.Handle(new(controllers.LoginController))
+
+	signup := mvc.New(app.Party("/signup"))
+	signup.Register(db)
+	signup.Handle(new(controllers.SignupController))
 
 	app.Listen(":8080")
 }
