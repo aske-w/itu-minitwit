@@ -1,7 +1,8 @@
 package controllers
 
 import (
-	"aske-w/itu-minitwit/database/sqlite"
+	"aske-w/itu-minitwit/database"
+	"aske-w/itu-minitwit/entity"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
@@ -12,22 +13,15 @@ import (
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/sessions"
 )
 
 type IndexController struct {
-	// context is auto-binded by Iris on each request,
-	// remember that on each incoming request iris creates a new UserController each time,
-	// so all fields are request-scoped by-default, only dependency injection is able to set
-	// custom fields like the Service which is the same for all requests (static binding)
-	// and the Session which depends on the current context (dynamic binding).
 	Ctx iris.Context
 
-	// // Our UserService, it's an interface which
-	// // is binded from the main application.
-	// Service services.UserService
-
-	// // Session, binded using dependency injection from the main.go.
-	// Session *sessions.Session
+	DB *database.SQLite
+	// Session, binded using dependency injection from the main.go.
+	Session *sessions.Session
 }
 
 type User struct {
@@ -42,17 +36,17 @@ type Follower struct {
 	Whom_id int
 }
 
-type Message struct {
-	Message_id int
-	Author_id  int
-	Text       string
-	Pub_date   int
-	Flagged    int
-}
+// type Message struct {
+// 	Message_id int
+// 	Author_id  int
+// 	Text       string
+// 	Pub_date   int
+// 	Flagged    int
+// }
 
-func getMessages() []Message {
+func getMessages() []entity.Message {
 
-	db, err := sqlite.ConnectSqlite()
+	db, err := database.ConnectSqlite()
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
@@ -63,10 +57,10 @@ func getMessages() []Message {
 		log.Fatalf("2: error selecting all messages: %v", err)
 	}
 
-	messages := make([]Message, 0)
+	messages := make([]entity.Message, 0)
 
 	for rows.Next() {
-		message := Message{}
+		message := entity.Message{}
 		err = rows.Scan(&message.Message_id, &message.Author_id, &message.Text, &message.Pub_date, &message.Flagged)
 		if err != nil {
 			log.Fatalf("error scanning rows %v", err)
@@ -79,7 +73,7 @@ func getMessages() []Message {
 }
 
 func getUserByUsername(username string) (*User, error) {
-	db, err := sqlite.ConnectSqlite()
+	db, err := database.ConnectSqlite()
 	checkError(err)
 
 	rows, err := db.Conn.Query(`select id, username, email, pw_hash from user where username = ?`, username)
@@ -98,7 +92,7 @@ func getUserByUsername(username string) (*User, error) {
 }
 
 func getUserById(id int) (*User, error) {
-	db, err := sqlite.ConnectSqlite()
+	db, err := database.ConnectSqlite()
 	checkError(err)
 
 	rows, err := db.Conn.Query(`select id, username, email, pw_hash from user where id = ?`, id)
@@ -140,9 +134,26 @@ func gravatar_url(email string, size int) string {
 // https://docs.iris-go.com/iris/contents/sessions
 // func beforeRequest(){}
 
+func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
+
+}
+
 func (c *IndexController) Get() mvc.Result {
 
-	messages := getMessages()
+	var messages entity.Messages
+
+	err := c.DB.Select(c.Ctx, &messages, "SELECT * FROM messages")
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	for i := 0; i < len(messages); i++ {
+		fmt.Println(messages[i])
+
+	}
+
+	// messages := getMessages()
 
 	return mvc.View{
 		Name: "index.html",
