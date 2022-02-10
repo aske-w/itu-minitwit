@@ -3,7 +3,7 @@ package entity
 import "database/sql"
 
 type User struct {
-	ID       int64  `db:"id" json:"id"`
+	User_id  int64  `db:"id" json:"id"`
 	Username string `db:"username" json:"username"`
 	Email    string `db:"email" json:"email"`
 	Pw_Hash  string `db:"pw_hash" json:"pw_hash"`
@@ -27,7 +27,7 @@ func (p *User) SortBy() string {
 
 // Scan binds mysql rows to this Product.
 func (p *User) Scan(rows *sql.Rows) error {
-	return rows.Scan(&p.ID, &p.Username, &p.Email, &p.Pw_Hash)
+	return rows.Scan(&p.User_id, &p.Username, &p.Email, &p.Pw_Hash)
 }
 
 // Products is a list of products. Implements the `Scannable` interface.

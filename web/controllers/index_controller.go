@@ -63,7 +63,7 @@ func gravatar_url(email string, size int) string {
 func public_timeline(c *IndexController) []*Timeline {
 	// var timeline Timeline
 
-	rows, err := c.DB.Conn.Query(" SELECT * FROM users INNER JOIN message ON message.author_id = users.id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 10)
+	rows, err := c.DB.Conn.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 10)
 	utils.CheckError(err)
 	defer rows.Close()
 
@@ -108,8 +108,8 @@ func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 	c.DB.Get(c.Ctx, &followed, `
 	select 1 from follower where
             follower.who_id = ? and follower.whom_id = ?
-	`, 18, profile_user.ID)
-	fmt.Println("followed", followed, profile_user.ID)
+	`, 18, profile_user.User_id)
+	fmt.Println("followed", followed, profile_user.User_id)
 	return mvc.View{
 		// Name: "shared/error.html",
 		Data: iris.Map{"Message": "User not found"},
@@ -128,10 +128,10 @@ func (c *IndexController) GetPublic() mvc.Result {
 
 func private_timeline(c *IndexController, userId string) []*Timeline {
 	rows, err := c.DB.Conn.Query(`
-	select message.*, users.* from message, users
-	where message.flagged = 0 and message.author_id = users.id and (
-		users.id = ? or
-		users.id in (select whom_id from follower
+	select message.*, user.* from message, user
+	where message.flagged = 0 and message.author_id = user.user_id and (
+		user.user_id = ? or
+		user.user_id in (select whom_id from follower
 								where who_id = ?))
 	order by message.pub_date desc limit ?`, userId, userId, 10)
 	utils.CheckError(err)

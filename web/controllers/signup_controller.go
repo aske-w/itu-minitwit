@@ -51,7 +51,7 @@ func (c *SignupController) Post() mvc.Result {
 				error = err.Error()
 			} else {
 				fmt.Println("INSERTING")
-				_, err := c.DB.Conn.Exec(`insert into users (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
+				_, err := c.DB.Conn.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
 
 				if err != nil {
 					error = err.Error()

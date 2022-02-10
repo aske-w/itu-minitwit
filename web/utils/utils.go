@@ -23,7 +23,7 @@ func GetUserIdFromSession(session *sessions.Session) (string, bool) {
 
 func GetUserById(userId string, db *database.SQLite, ctx iris.Context) (entity.User, error) {
 	var user entity.User
-	err := db.Get(ctx, &user, "select * from users where ID = ?", userId)
+	err := db.Get(ctx, &user, "select * from user where user_id = ?", userId)
 	if err != nil {
 		return user, err
 	}
@@ -32,7 +32,7 @@ func GetUserById(userId string, db *database.SQLite, ctx iris.Context) (entity.U
 }
 func GetUserByUsername(username string, db *database.SQLite, ctx iris.Context) (entity.User, error) {
 	var user entity.User
-	err := db.Get(ctx, &user, "select * from users where username = ?", username)
+	err := db.Get(ctx, &user, "select * from user where username = ?", username)
 	if err != nil {
 		return user, err
 	}

@@ -34,8 +34,8 @@ func initDatabase() {
 	}
 
 	// db.Conn.Exec(`
-	// 	create table users (
-	// 		id integer primary key autoincrement,
+	// 	create table user (
+	// 		user_id integer primary key autoincrement,
 	// 		username string not null,
 	// 		email string not null,
 	// 		pw_hash string not null
@@ -43,14 +43,14 @@ func initDatabase() {
 	// `)
 
 	// db.Conn.Exec(`
-	// 	create table followers (
+	// 	create table follower (
 	// 		who_id integer,
 	// 		whom_id integer
 	//   	);
 	// `)
 
 	// db.Conn.Exec(`
-	// 	create table messages (
+	// 	create table message (
 	// 		message_id integer primary key autoincrement,
 	// 		author_id integer not null,
 	// 		text string not null,
@@ -59,7 +59,7 @@ func initDatabase() {
 	//   	);
 	// `)
 
-	db.Conn.Exec(`INSERT INTO users (username, email, pw_hash) values ('christian', 'cger@itu.dk', 'secret')`)
+	db.Conn.Exec(`INSERT INTO user (username, email, pw_hash) values ('christian', 'cger@itu.dk', 'secret')`)
 
 	db.Conn.Exec(`INSERT INTO messages (author_id, text, pub_date, flagged) values (1, 'Tweet 1', 1000, false)`)
 	db.Conn.Exec(`INSERT INTO messages (author_id, text, pub_date, flagged) values (1, 'Tweet 1', 1000, false)`)

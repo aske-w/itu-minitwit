@@ -26,7 +26,7 @@ func (c *LoginController) Post() mvc.Result {
 	password := c.Ctx.FormValue("password")
 	error := ""
 	var user entity.User
-	err := c.DB.Get(c.Ctx, &user, "select * from users where username = ?", username)
+	err := c.DB.Get(c.Ctx, &user, "select * from user where username = ?", username)
 	if err != nil {
 		error = "Invalid username"
 	} else {
@@ -37,7 +37,7 @@ func (c *LoginController) Post() mvc.Result {
 		if pwErr != nil {
 			error = "Invalid password"
 		} else {
-			c.Session.Set("user_id", user.ID)
+			c.Session.Set("user_id", user.User_id)
 			c.Ctx.Redirect("/")
 		}
 	}
