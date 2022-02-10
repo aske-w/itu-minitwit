@@ -66,6 +66,20 @@ func initDatabase() {
 	// db.Conn.Exec(`INSERT INTO products (product_id, product_name, product_price) values (2, 'Havestol', 1000)`)
 }
 
+func before(ctx iris.Context) {
+	shareInformation := "this is a sharable information between handlers"
+
+	requestPath := ctx.Path()
+	println("Before the indexHandler or contactHandler: " + requestPath)
+
+	// if ctx.Session {
+	// }
+
+	// ctx.SetUser()
+	ctx.Values().Set("info", shareInformation)
+	ctx.Next()
+}
+
 func main() {
 
 	app := iris.New()
@@ -115,5 +129,6 @@ func main() {
 	signup.Register(db)
 	signup.Handle(new(controllers.SignupController))
 
+	app.UseGlobal(before)
 	app.Listen(":8080")
 }

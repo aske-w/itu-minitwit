@@ -185,7 +185,7 @@ func (c *IndexController) Get() mvc.Result {
 	messages := public_timeline(c)
 
 	// messages := getMessages()
-
+	c.Session.Get("user_id")
 	return mvc.View{
 		Name: "index.html",
 		Data: iris.Map{"Title": "Index page", "Messages": messages},
