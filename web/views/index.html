@@ -1,21 +1,18 @@
 <h2>{{.Title}}</h2>
 
-<ul class=messages>
-    {{range .Messages }}
-        <li>
-            <p>
-                <strong>
-                    <a href="">
-                        Christian
-                    </a>
-                </strong>
-                
-                {{ .Text }}
-            
-            </p>
-        <li>
-    </li>
-    {{end}}
+<ul class="messages">
+  {{range .Messages }}
+  <li>
+    <img src="{{call .Gravatar_Url .Email 48 }}" alt="profile_img" />
+    <p>
+      <strong>
+        <a href=""> {{ .Username }} </a>
+      </strong>
+      {{.Text}}
+      <small>&mdash; {{call .Format_Datetime .Pub_date }}</small>
+    </p>
+  </li>
+  {{end}}
 
-    <li><em>There's no message so far.</em></li>
+  <li><em>There's no message so far.</em></li>
 </ul>

@@ -36,6 +36,22 @@ type Follower struct {
 	Whom_id int
 }
 
+type Timeline struct {
+	UserId          int
+	Username        string
+	Email           string
+	Pw_hash         string
+	Message_id      int
+	Author_id       int
+	Text            string
+	Pub_date        int
+	Flagged         int
+	Gravatar_Url    func(email string, size int) string
+	Format_Datetime func(timestamp int) string
+}
+
+type Timelines []*Timeline
+
 // type Message struct {
 // 	Message_id int
 // 	Author_id  int
@@ -51,7 +67,7 @@ func getMessages() []entity.Message {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
 
-	rows, err := db.Conn.Query(`SELECT * FROM messages`)
+	rows, err := db.Conn.Query(`SELECT * FROM message`)
 
 	if err != nil {
 		log.Fatalf("2: error selecting all messages: %v", err)
@@ -131,6 +147,30 @@ func gravatar_url(email string, size int) string {
 	return url
 }
 
+func public_timeline(c *IndexController) []*Timeline {
+	// var timeline Timeline
+
+	rows, err := c.DB.Conn.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 10)
+	checkError(err)
+	defer rows.Close()
+
+	timeline := make(Timelines, 0)
+
+	for rows.Next() {
+		group := &Timeline{
+			Gravatar_Url:    gravatar_url,
+			Format_Datetime: format_datetime,
+		}
+		// user := entity.User{}
+		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
+		checkError(err)
+		// group.Gravatar = gravatar_url
+		timeline = append(timeline, group)
+	}
+
+	return timeline
+}
+
 // https://docs.iris-go.com/iris/contents/sessions
 // func beforeRequest(){}
 
@@ -140,18 +180,16 @@ func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 
 func (c *IndexController) Get() mvc.Result {
 
-	var messages entity.Messages
+	// var messages entity.Messages
 
-	err := c.DB.Select(c.Ctx, &messages, "SELECT * FROM messages")
+	// err := c.DB.Select(c.Ctx, &messages, "SELECT * from message desc limit ?", 10)
+	// checkError(err)
 
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// for i := 0; i < len(messages); i++ {
+	// 	fmt.Println(messages[i])
 
-	for i := 0; i < len(messages); i++ {
-		fmt.Println(messages[i])
-
-	}
+	// }
+	messages := public_timeline(c)
 
 	// messages := getMessages()
 
