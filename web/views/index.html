@@ -1,9 +1,5 @@
 <h2>{{.Title}}</h2>
 
-{{if .LoggedIn}}
-
-<h2>Your name is: {{.User.Username}}</h2>
-{{end}}
 <ul class="messages">
   {{range .Messages }}
   <li>

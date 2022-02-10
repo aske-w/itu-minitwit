@@ -6,19 +6,21 @@
   <body>
     <div class="page">
       <h1>MiniTwit</h1>
+
+      {{if .LoggedIn}}
+      <div class="navigation">
+        <a href="/">my timeline</a> | <a href="">public timeline</a> |
+        <a href="/logout">sign out [{{.User.Username}}]</a>
+      </div>
+      {{else}}
       <div class="navigation">
         <a href="/">public timeline</a> | <a href="/signup">sign up</a> |
         <a href="/login">sign in</a>
       </div>
-
-      <div class="navigation">
-        <a href="/">my timeline</a> | <a href="">public timeline</a> |
-        <a href="/logout">sign out [USERNAME]</a>
-      </div>
-      {{.info}}
+      {{end}}
       <div class="body">{{ yield }}</div>
 
-      <div class="footer">MiniTwit &mdash; A Flask Application</div>
+      <div class="footer">MiniTwit &mdash; An Iris Application</div>
     </div>
   </body>
 </html>
