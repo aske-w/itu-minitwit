@@ -84,23 +84,61 @@ func public_timeline(c *IndexController) []*Timeline {
 	return timeline
 }
 
-func (c *IndexController) Get() mvc.Result {
-
+func (c *IndexController) GetPublic() mvc.Result {
 	messages := public_timeline(c)
-
-	userId, exists := utils.GetUserIdFromSession(c.Session)
-	var user entity.User
-	if exists {
-		_user, err := utils.GetUserById(userId, c.DB, c.Ctx)
-		utils.CheckError(err)
-
-		user = _user
-	}
-
-	c.Session.Get("user_id")
 	return mvc.View{
 		Name: "index.html",
-		Data: iris.Map{"Title": "Index page", "Messages": messages, "User": user, "LoggedIn": exists},
+		Data: iris.Map{"Title": "Index page", "Messages": messages, "User": nil, "LoggedIn": false},
+	}
+
+}
+
+func private_timeline(c *IndexController, userId string) []*Timeline {
+	rows, err := c.DB.Conn.Query(`
+	select message.*, users.* from message, users
+	where message.flagged = 0 and message.author_id = users.id and (
+		users.id = ? or
+		users.id in (select whom_id from follower
+								where who_id = ?))
+	order by message.pub_date desc limit ?`, userId, userId, 10)
+	utils.CheckError(err)
+	defer rows.Close()
+
+	timeline := make(Timelines, 0)
+
+	for rows.Next() {
+		group := &Timeline{
+			Gravatar_Url:    gravatar_url,
+			Format_Datetime: format_datetime,
+		}
+		// user := entity.User{}
+		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
+		utils.CheckError(err)
+		// group.Gravatar = gravatar_url
+		timeline = append(timeline, group)
+	}
+
+	return timeline
+}
+
+func (c *IndexController) Get() mvc.Result {
+
+	var messages []*Timeline
+
+	userId, loggedIn := utils.GetUserIdFromSession(c.Session)
+	var user entity.User
+	if loggedIn {
+		_user, err := utils.GetUserById(userId, c.DB, c.Ctx)
+		utils.CheckError(err)
+		messages = private_timeline(c, userId)
+		user = _user
+	} else {
+		c.Ctx.Redirect("/public")
+	}
+
+	return mvc.View{
+		Name: "index.html",
+		Data: iris.Map{"Title": "Index page", "Messages": messages, "User": user, "LoggedIn": loggedIn},
 	}
 
 }
