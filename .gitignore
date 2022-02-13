@@ -1,3 +1,4 @@
 flag_tool
 __pycache__
 *.pyc
+.DS_Store
