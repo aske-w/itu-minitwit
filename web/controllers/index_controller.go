@@ -163,18 +163,33 @@ func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 	`, 18, profile_user.User_id)
 
 	messages := user_timeline(c, profile_user.User_id)
-	fmt.Println("followed", followed, profile_user.User_id)
+
 	return mvc.View{
 		Name: "timeline.html",
-		Data: iris.Map{"Title": profile_user.Username + "'s timeline", "Messages": messages, "User": user, "LoggedIn": user.User_id > 0},
+		Data: iris.Map{
+			"Title":       profile_user.Username + "'s timeline",
+			"User":        user,
+			"LoggedIn":    user.User_id > 0,
+			"Messages":    messages,
+			"ProfileUser": profile_user,
+			"Endpoint":    "user_timeline",
+			"Followed":    followed,
+		},
 	}
 }
 
 func (c *IndexController) GetPublic() mvc.Result {
+	user, _ := c.User()
 	messages := public_timeline(c)
 	return mvc.View{
 		Name: "timeline.html",
-		Data: iris.Map{"Title": "Public timeline", "Messages": messages, "User": nil, "LoggedIn": false},
+		Data: iris.Map{
+			"Title":    "Public timeline",
+			"Messages": messages,
+			"User":     user,
+			"LoggedIn": user.User_id > 0,
+			"Endpoint": "timeline",
+		},
 	}
 
 }
@@ -197,7 +212,13 @@ func (c *IndexController) Get() mvc.Result {
 
 	return mvc.View{
 		Name: "timeline.html",
-		Data: iris.Map{"Title": "My timeline", "Messages": messages, "User": user, "LoggedIn": loggedIn},
+		Data: iris.Map{
+			"Title":    "My timeline",
+			"Messages": messages,
+			"User":     user,
+			"LoggedIn": loggedIn,
+			"Endpoint": "timeline",
+		},
 	}
 
 }

@@ -1,12 +1,35 @@
 <h2>{{.Title}}</h2>
 
+{{ if .LoggedIn }}
+    {{ if eq .Endpoint "user_timeline" }}
+      <div class=followstatus>
+      {{ if eq .User.User_id  .ProfileUser.User_id }}
+        This is you!
+      {{ else if .Followed }}
+        You are currently following this user.
+        <a class=unfollow href="/{{.ProfileUser.Username}}/unfollow">Unfollow user</a>.
+      {{else}}
+        You are not yet following this user.
+        <a class=follow href="/{{.ProfileUser.Username}}/follow">Follow user</a>.
+      {{end}}
+      </div>
+    {{else if eq .Endpoint "timeline" }}
+      <div class=twitbox>
+        <h3>What's on your mind {{ .User.Username }}?</h3>
+        <form action="/add_message" method=post>
+          <p><input type=text name=text size=60><input type=submit value="Share">
+        </form>
+      </div>
+    {{end}}
+  {{end}}
+
 <ul class="messages">
   {{range .Messages }}
   <li>
     <img src="{{call .Gravatar_Url .Email 48 }}" alt="profile_img" />
     <p>
       <strong>
-        <a href=""> {{ .Username }} </a>
+        <a href="/{{ .Username }} "> {{ .Username }} </a>
       </strong>
       {{.Text}}
       <small>&mdash; {{call .Format_Datetime .Pub_date }}</small>
