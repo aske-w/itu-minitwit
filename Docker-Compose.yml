@@ -1,0 +1,11 @@
+version: "3.8"
+
+services: 
+  server:
+    image: itu-minitwit
+    container_name: itu-minitwit
+    ports:
+      - "8080:8080"
+    build:
+      context: . #docker file path
+      dockerfile: Dockerfile #docker file name
