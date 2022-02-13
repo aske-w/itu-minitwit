@@ -5,7 +5,7 @@ services:
     image: itu-minitwit
     container_name: itu-minitwit
     ports:
-      - "8080:8080"
+      - "8080:8080"   # docker port : localhost port
     build:
-      context: . #docker file path
-      dockerfile: Dockerfile #docker file name
+      context: . # docker file path
+      dockerfile: Dockerfile # docker file name
