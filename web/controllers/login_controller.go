@@ -5,8 +5,6 @@ import (
 	"aske-w/itu-minitwit/entity"
 	"aske-w/itu-minitwit/web/utils"
 
-	"fmt"
-
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/kataras/iris/v12/sessions"
@@ -31,7 +29,6 @@ func (c *LoginController) Post() mvc.Result {
 		error = "Invalid username"
 	} else {
 
-		fmt.Println(user)
 		pwErr := bcrypt.CompareHashAndPassword([]byte(user.Pw_Hash), []byte(password))
 
 		if pwErr != nil {

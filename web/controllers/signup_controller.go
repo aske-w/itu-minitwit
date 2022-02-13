@@ -3,7 +3,6 @@ package controllers
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/web/utils"
-	"fmt"
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
@@ -43,14 +42,10 @@ func (c *SignupController) Post() mvc.Result {
 			error = "The username is already taken"
 		} else {
 
-			fmt.Println("REACHED 1")
 			byteHash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-
-			fmt.Println("REACHED hash 2" + string(byteHash))
 			if err != nil {
 				error = err.Error()
 			} else {
-				fmt.Println("INSERTING")
 				_, err := c.DB.Conn.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
 
 				if err != nil {

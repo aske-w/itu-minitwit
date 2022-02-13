@@ -62,7 +62,7 @@ func gravatar_url(email string, size int) string {
 
 func public_timeline(c *IndexController) []*Timeline {
 
-	rows, err := c.DB.Conn.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 10)
+	rows, err := c.DB.Conn.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 30)
 
 	utils.CheckError(err)
 	defer rows.Close()
