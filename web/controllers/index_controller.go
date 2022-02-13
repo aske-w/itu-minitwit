@@ -144,6 +144,78 @@ func (c *IndexController) User() (entity.User, error) {
 func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 
 	b.Handle("GET", "/{username:string}", "UserTimelineHandler")
+	b.Handle("GET", "/{username:string}/follow", "FollowHandler")
+	b.Handle("GET", "/{username:string}/unfollow", "UnfollowHandler")
+	b.Handle("POST", "/add_message", "AddMessageHandler")
+}
+
+func (c *IndexController) get_user_id(username string) string {
+	var userId string
+	c.DB.Get(c.Ctx, &userId, "select user_id from user where username = ?", username)
+	return userId
+}
+
+func (c *IndexController) UnfollowHandler(username string) mvc.View {
+	userId := c.UserId()
+	whomId := c.get_user_id(username)
+	if userId == "" || whomId == "" {
+		return mvc.View{
+			Data: iris.Map{"Message": "User not found"},
+			Code: 404,
+		}
+	}
+
+	c.DB.Exec(
+		c.Ctx,
+		"delete from follower where who_id=? and whom_id=?",
+		userId, whomId,
+	)
+	c.Ctx.Redirect("/" + username)
+	return mvc.View{}
+
+}
+
+func (c *IndexController) FollowHandler(username string) mvc.View {
+	// """Adds the current user as follower of the given user."""
+	userId := c.UserId()
+	whomId := c.get_user_id(username)
+	if userId == "" || whomId == "" {
+		return mvc.View{
+			Data: iris.Map{"Message": "User not found"},
+			Code: 404,
+		}
+	}
+	c.DB.Exec(
+		c.Ctx,
+		"insert into follower (who_id, whom_id) values (?, ?)",
+		userId, whomId,
+	)
+	c.Ctx.Redirect("/" + username)
+	return mvc.View{}
+}
+
+func (c *IndexController) AddMessageHandler() mvc.View {
+
+	userId := c.UserId()
+	if userId == "" {
+		return mvc.View{
+			Data: iris.Map{"Message": "User not found"},
+			Code: 404,
+		}
+	}
+
+	text := c.Ctx.FormValue("text")
+	if text != "" {
+		c.DB.Exec(
+			c.Ctx,
+			"insert into message (author_id, text, pub_date, flagged)	values (?, ?, ?, 0)",
+			userId,
+			text,
+			time.Now().Unix(),
+		)
+	}
+	c.Ctx.Redirect("/")
+	return mvc.View{}
 }
 
 func (c *IndexController) UserTimelineHandler(username string) mvc.View {
@@ -151,7 +223,6 @@ func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 	profile_user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
 	if err != nil {
 		return mvc.View{
-
 			Data: iris.Map{"Message": "User not found"},
 			Code: 404,
 		}
@@ -160,7 +231,7 @@ func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 	c.DB.Get(c.Ctx, &followed, `
 	select 1 from follower where
             follower.who_id = ? and follower.whom_id = ?
-	`, 18, profile_user.User_id)
+	`, user.User_id, profile_user.User_id)
 
 	messages := user_timeline(c, profile_user.User_id)
 
