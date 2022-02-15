@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -63,9 +62,12 @@ type RegisterUser struct {
 	Email    string `json:"email"`
 }
 
+type SQLCount struct {
+	Count int
+}
+
 func not_req_from_simulator(ctx iris.Context) bool {
 	auth := ctx.GetHeader("Authorization")
-	fmt.Println(auth)
 
 	if strings.Compare(auth, "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh") != 0 {
 		ctx.StatusCode(403)
@@ -126,10 +128,12 @@ func (c *ApiController) RegisterHandler() {
 	} else {
 
 		user, _ := utils.GetUserByUsername(username, c.DB, c.Ctx)
+		count := SQLCount{}
+		c.DB.Exec(c.Ctx, "select count(*) from user;", &count)
+		// fmt.Print("count: ", count.Count)
 
-		// db.Get(ctx, &user, "select * from user where username = ?", username)
-
-		if user.User_id != 0 {
+		// fmt.Println("userid: ", user.User_id)
+		if user.User_id != 0 && count.Count > 0 {
 			err = "The username is already taken"
 		} else {
 
@@ -162,10 +166,8 @@ func (c *ApiController) MsgHandler() {
 	validToken := not_req_from_simulator(c.Ctx)
 
 	if !validToken {
-		fmt.Println("not valid token")
 		return
 	}
-	fmt.Println("valid token")
 
 	no_msg := c.Ctx.Params().GetIntDefault("no", 100)
 
@@ -211,7 +213,6 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 	validToken := not_req_from_simulator(c.Ctx)
 
 	if !validToken {
-		fmt.Println("not valid token")
 		return
 	}
 
@@ -238,9 +239,6 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 		)
 
 		utils.CheckError(err)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
 	}
 	c.Ctx.StatusCode(204)
 }
