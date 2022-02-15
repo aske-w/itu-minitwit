@@ -6,7 +6,7 @@ import requests
 from contextlib import closing
 
 
-BASE_URL = 'http://127.0.0.1:8080'
+BASE_URL = 'http://127.0.0.1:5001/'
 DATABASE = "../db.db"
 USERNAME = 'simulator'
 PWD = 'super_safe!'
