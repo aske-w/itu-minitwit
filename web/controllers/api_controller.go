@@ -41,8 +41,8 @@ type MyResponse struct {
 }
 
 type FollowRequest struct {
-	follow   *string `json:"follow`
-	unfollow *string `json:"unfollow`
+	Follow   *string `json:"follow`
+	Unfollow *string `json:"unfollow`
 }
 
 type FilteredMsg struct {
@@ -89,11 +89,11 @@ func getFilteredMsgs(rows *sql.Rows) FilteredMsgs {
 func (c *ApiController) BeforeActivation(b mvc.BeforeActivation) {
 	// Register endpoints on /api
 	b.Handle("POST", "/register", "RegisterHandler") // Done
-	b.Handle("GET", "/latest", "LatestHandler")      // Done
+	b.Handle("GET", "/latest", "LatestHandler")      // Done √
 
-	b.Handle("GET", "/msgs", "MsgHandler")                             // Done
-	b.Handle("GET", "/msgs/{username:string}", "UserMsgsGetHandler")   // Done
-	b.Handle("POST", "/msgs/{username:string}", "UserMsgsPostHandler") // Done
+	b.Handle("GET", "/msgs", "MsgHandler")                             // Done √
+	b.Handle("GET", "/msgs/{username:string}", "UserMsgsGetHandler")   // Done √
+	b.Handle("POST", "/msgs/{username:string}", "UserMsgsPostHandler") // Done √
 
 	b.Handle("GET", "/fllws/{username:string}", "FollowersGetHandler") // Done
 	b.Handle("POST", "/fllws/{username:string}", "FollowersPostHandler")
@@ -199,8 +199,6 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 	update_latest(c)
 	validToken := not_req_from_simulator(c.Ctx)
 
-	fmt.Println("-----name.---- " + username)
-
 	if !validToken {
 		fmt.Println("not valid token")
 		return
@@ -232,8 +230,6 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 		}
 	}
 
-	fmt.Println("done---" + text)
-
 	c.Ctx.StatusCode(204)
 	c.Ctx.JSON("")
 }
@@ -260,7 +256,7 @@ func (c *ApiController) FollowersGetHandler(username string) {
 	}
 
 	no_followers := c.Ctx.Params().GetIntDefault("no", 100)
-	rows, err := c.DB.Conn.Query("SELECT user.username FROM user INNER JOIN follower ON follower.whom_id=user.user_id WHERE follower.who_id=? LIMIT ?", user.User_id, no_followers)
+	rows, err := c.DB.Conn.Query("SELECT user.username FROM user INNER JOIN follower ON follower.whom_id=user.user_id WHERE follower.who_id = ? LIMIT ?", user.User_id, no_followers)
 	utils.CheckError(err)
 	defer rows.Close()
 
@@ -275,7 +271,7 @@ func (c *ApiController) FollowersGetHandler(username string) {
 		follower_names = append(follower_names, follower_name)
 	}
 
-	c.Ctx.StatusCode(204)
+	c.Ctx.StatusCode(200)
 	c.Ctx.JSON(iris.Map{"follows": follower_names})
 }
 
@@ -286,38 +282,45 @@ func (c *ApiController) FollowersPostHandler(username string) {
 	}
 
 	body := FollowRequest{}
-	err := c.Ctx.ReadJSON(&body)
+	readBody(c, &body)
 
-	if err != nil {
-		c.Ctx.StatusCode(400)
-		c.Ctx.JSON(iris.Map{"error": err})
-		return
-	}
-
-	myUserId := c.Session.GetString("user_id")
-	user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
+	myUser, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
 
 	if err != nil {
 		c.Ctx.StatusCode(404)
 		return
 	}
 
-	if body.follow != nil && body.unfollow == nil {
+	if body.Follow != nil && body.Unfollow == nil {
+
+		whomUser, err := utils.GetUserByUsername(*body.Follow, c.DB, c.Ctx)
+
+		if err != nil {
+			c.Ctx.StatusCode(404)
+			return
+		}
 
 		c.DB.Exec(
 			c.Ctx,
 			"insert into follower (who_id, whom_id) values (?, ?)",
-			myUserId, user.User_id,
+			myUser.User_id, whomUser.User_id,
 		)
 
 		c.Ctx.StatusCode(204)
 		return
-	} else if body.follow == nil && body.unfollow != nil {
+	} else if body.Follow == nil && body.Unfollow != nil {
+
+		whomUser, err := utils.GetUserByUsername(*body.Unfollow, c.DB, c.Ctx)
+
+		if err != nil {
+			c.Ctx.StatusCode(404)
+			return
+		}
 
 		c.DB.Exec(
 			c.Ctx,
 			"delete from follower where who_id=? and whom_id=?",
-			myUserId, user.User_id,
+			myUser.User_id, whomUser.User_id,
 		)
 
 		c.Ctx.StatusCode(204)
