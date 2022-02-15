@@ -57,6 +57,12 @@ type Message struct {
 
 type FilteredMsgs []iris.Map
 
+type RegisterUser struct {
+	Username string `json:"username"`
+	Password string `json:"pwd"`
+	Email    string `json:"email"`
+}
+
 func not_req_from_simulator(ctx iris.Context) bool {
 	auth := ctx.GetHeader("Authorization")
 	fmt.Println(auth)
@@ -103,43 +109,49 @@ func (c *ApiController) BeforeActivation(b mvc.BeforeActivation) {
 func (c *ApiController) RegisterHandler() {
 	update_latest(c)
 
-	username := c.Ctx.FormValue("username")
-	email := c.Ctx.FormValue("email")
-	password := c.Ctx.FormValue("password")
+	registerUser := RegisterUser{}
+	readBody(c, &registerUser)
+	username := registerUser.Username
+	email := registerUser.Email
+	password := registerUser.Password
 
-	error := ""
+	err := ""
 
 	if username == "" {
-		error = "You have to enter a username"
+		err = "You have to enter a username"
 	} else if email == "" || !strings.Contains(email, "@") {
-		error = "You have to enter a valid email address"
+		err = "You have to enter a valid email address"
 	} else if password == "" {
-		error = "You have to enter a password"
+		err = "You have to enter a password"
 	} else {
 
-		_, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
+		user, _ := utils.GetUserByUsername(username, c.DB, c.Ctx)
 
-		if err != nil {
-			error = "The username is already taken"
+		// db.Get(ctx, &user, "select * from user where username = ?", username)
+
+		if user.User_id != 0 {
+			err = "The username is already taken"
 		} else {
 
-			byteHash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-			if err != nil {
-				error = err.Error()
+			byteHash, __err := bcrypt.GenerateFromPassword([]byte(password), 14)
+			if __err != nil {
+				err = __err.Error()
 			} else {
-				_, err := c.DB.Conn.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
+				_, ___err := c.DB.Conn.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
 
-				if err != nil {
-					error = err.Error()
+				if ___err != nil {
+					err = ___err.Error()
+
 				} else {
 					c.Ctx.StatusCode(204)
+					return
 				}
 			}
 
 		}
 	}
 	c.Ctx.StatusCode(400)
-	c.Ctx.JSON(iris.Map{"status": 400, "error_msg": error})
+	c.Ctx.JSON(iris.Map{"status": 400, "error_msg": err})
 }
 
 func (c *ApiController) LatestHandler() {

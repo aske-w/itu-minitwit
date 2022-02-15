@@ -37,7 +37,6 @@ func GetUserByUsername(username string, db *database.SQLite, ctx iris.Context) (
 		return user, err
 	}
 	return user, nil
-
 }
 
 func CheckError(err error) {
