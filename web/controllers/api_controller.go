@@ -133,7 +133,6 @@ func (c *ApiController) RegisterHandler() {
 					error = err.Error()
 				} else {
 					c.Ctx.StatusCode(204)
-					c.Ctx.JSON("")
 				}
 			}
 
@@ -203,11 +202,13 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 		fmt.Println("not valid token")
 		return
 	}
+
 	user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
 	if err != nil {
 		c.Ctx.StatusCode(404)
 		return
 	}
+
 	userId := user.User_id
 
 	msg := Message{}
@@ -229,9 +230,7 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 			fmt.Println(err.Error())
 		}
 	}
-
 	c.Ctx.StatusCode(204)
-	c.Ctx.JSON("")
 }
 
 func readBody(c *ApiController, v interface{}) {
