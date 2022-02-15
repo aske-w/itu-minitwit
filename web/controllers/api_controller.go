@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -62,10 +63,6 @@ type RegisterUser struct {
 	Email    string `json:"email"`
 }
 
-type SQLCount struct {
-	Count int
-}
-
 func not_req_from_simulator(ctx iris.Context) bool {
 	auth := ctx.GetHeader("Authorization")
 
@@ -117,41 +114,29 @@ func (c *ApiController) RegisterHandler() {
 	email := registerUser.Email
 	password := registerUser.Password
 
-	err := ""
+	var err error
 
 	if username == "" {
-		err = "You have to enter a username"
+		err = fmt.Errorf("you have to enter a username")
 	} else if email == "" || !strings.Contains(email, "@") {
-		err = "You have to enter a valid email address"
+		err = fmt.Errorf("you have to enter a valid email address")
 	} else if password == "" {
-		err = "You have to enter a password"
+		err = fmt.Errorf("you have to enter a password")
 	} else {
-
 		user, _ := utils.GetUserByUsername(username, c.DB, c.Ctx)
-		count := SQLCount{}
-		c.DB.Exec(c.Ctx, "select count(*) from user;", &count)
-		// fmt.Print("count: ", count.Count)
-
-		// fmt.Println("userid: ", user.User_id)
-		if user.User_id != 0 && count.Count > 0 {
-			err = "The username is already taken"
+		count := utils.CountEntries("user", c.DB)
+		if user.User_id != 0 && count > 0 {
+			err = fmt.Errorf("the username is already taken")
 		} else {
-
-			byteHash, __err := bcrypt.GenerateFromPassword([]byte(password), 14)
-			if __err != nil {
-				err = __err.Error()
-			} else {
-				_, ___err := c.DB.Conn.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
-
-				if ___err != nil {
-					err = ___err.Error()
-
-				} else {
+			var byteHash []byte
+			byteHash, err = bcrypt.GenerateFromPassword([]byte(password), 10)
+			if err == nil {
+				_, err = c.DB.Conn.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
+				if err == nil {
 					c.Ctx.StatusCode(204)
 					return
 				}
 			}
-
 		}
 	}
 	c.Ctx.StatusCode(400)
