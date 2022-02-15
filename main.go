@@ -66,5 +66,9 @@ func main() {
 	signup.Register(db)
 	signup.Handle(new(controllers.SignupController))
 
+	api := mvc.New(app.Party("/api"))
+	api.Register(db)
+	api.Handle(new(controllers.ApiController))
+
 	app.Listen(":8080")
 }
