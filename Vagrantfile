@@ -6,26 +6,7 @@ Vagrant.configure("2") do |config|
 
     # For two way synchronization you might want to try `type: "virtualbox"`
     config.vm.synced_folder ".", "/vagrant", type: "virtualbox" # was rsync before
-  
-    # config.vm.define "dbserver", primary: true do |server|
-    #   server.vm.network "private_network", ip: "192.168.56.2"
-    #   # config.vm.network "forwarded_port", guest: 27017, host: 37017
-    #   # config.vm.network "forwarded_port", guest: 28017, host: 38017
-    #   server.vm.provider "virtualbox" do |vb|
-    #     vb.memory = "1024"
-    #   end
-    #   server.vm.hostname = "dbserver"
-    #   server.vm.provision "shell", privileged: false, inline: <<-SHELL
-    #       echo "Installing MongoDB"
-    #       wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-    #       echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
-    #       sudo apt-get update
-    #       sudo apt-get install -y mongodb-org
-    #       sudo mkdir -p /data/db
-    #       sudo sed -i '/  bindIp:/ s/127.0.0.1/0.0.0.0/' /etc/mongod.conf
-    #       sudo systemctl start mongod
-    #       mongorestore --gzip /vagrant/dump
-    #   SHELL
+   
 
     config.vm.define "webserver", primary: true do |server|
         server.vm.network "private_network", ip: "192.168.62.1"
@@ -36,6 +17,7 @@ Vagrant.configure("2") do |config|
           vb.memory = "1024"
         end
         server.vm.hostname = "webserver"
+        server.vm.provision "file", source: ".env", destination: ".env"
         server.vm.provision "shell", privileged: false, inline: <<-SHELL
             echo "INSIDE PROVISION SCRIPT!"
             
@@ -43,9 +25,6 @@ Vagrant.configure("2") do |config|
             sudo curl -O https://storage.googleapis.com/golang/$GO_VERSION.tar.gz
             sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf $GO_VERSION.tar.gz
 
-            #/etc/vbox/networks.conf
-         
-            # * 0.0.0.0/0 ::/0
             
 
             echo ". $HOME/.bashrc" >> $HOME/.bash_profile
@@ -60,7 +39,7 @@ Vagrant.configure("2") do |config|
         SHELL
       end
     
-      #config.vm.provision "shell", privileged: false, inline: <<-SHELL
-      #  sudo apt-get update
-      #SHELL
+      config.vm.provision "shell", privileged: false, inline: <<-SHELL
+       sudo apt-get update
+      SHELL
     end

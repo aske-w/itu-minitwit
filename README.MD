@@ -31,10 +31,12 @@ Add `* 0.0.0.0/0 ::/0` to the file and save.
 Now we can create networks in the Vagrant file:
 
 ```ruby
+
  #...
  config.vm.network "private_network", type: "dhcp" # <---
  #...
   config.vm.define "webserver", primary: true do |server|
         server.vm.network "private_network", ip: "192.168.62.1" # <---
         server.vm.network "forwarded_port", guest: 8080, host: 8080
+
 ```
