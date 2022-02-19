@@ -70,3 +70,6 @@ in /python_api_tests: ```python3 minitwit_simulator.py "http://67.207.75.163:808
 
 ## Reading log file on server
 run command in vagrant ```tail -f -n100 out.log```
+
+## Creating tables in an empty db.db
+Run the command ```cat schema.sql | sqlite3 db.db``` in bash

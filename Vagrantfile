@@ -29,13 +29,23 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", privileged: false, inline: <<-SHELL
           echo "INSIDE PROVISION SCRIPT!"
           sudo apt-get update
-          if [[ ! -e gcc ]]; then
+          
+          # SQLITE is not installed:
+          if [[ ! -e `which sqlite3` ]]; then
+            sudo apt-get install sqlite3
+          else 
+            echo "Sqlite3 already installed. Skipping."
+          fi
+
+
+          # GCC is not installed:
+          if [[ ! -e `which gcc` ]]; then
             sudo apt-get install -y build-essential
           else 
             echo "Gcc already installed. Skipping."
           fi
           # Go is not installed:
-          if [[ ! -e go ]]; then
+          if [[ ! -e `which go` ]]; then
             export GO_VERSION="go1.17.7.linux-amd64"
             sudo curl -O https://storage.googleapis.com/golang/$GO_VERSION.tar.gz
             sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf $GO_VERSION.tar.gz
@@ -50,9 +60,11 @@ Vagrant.configure("2") do |config|
             echo "Go already installed. Skipping."
           fi  
 
+          # dont overwrite the db in the VM
           if [[ -e $HOME/db.db ]]; then
             rm /vagrant/db.db
           else
+            cat schema.sql | sqlite3 db.db
             echo "No DB file found. Overwriting."
           fi 
 
