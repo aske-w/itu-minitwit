@@ -3,6 +3,7 @@ package utils
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/entity"
+	"fmt"
 
 	"log"
 
@@ -37,11 +38,17 @@ func GetUserByUsername(username string, db *database.SQLite, ctx iris.Context) (
 		return user, err
 	}
 	return user, nil
-
 }
 
 func CheckError(err error) {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
+}
+
+func CountEntries(table string, db *database.SQLite) int {
+	row := db.Conn.QueryRow(fmt.Sprintf("SELECT COUNT(*) AS count FROM %s;", table))
+	var count int
+	row.Scan(&count)
+	return count
 }

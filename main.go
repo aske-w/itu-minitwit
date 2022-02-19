@@ -2,6 +2,7 @@ package main
 
 import (
 	"aske-w/itu-minitwit/database"
+	"aske-w/itu-minitwit/environment"
 	"aske-w/itu-minitwit/web/controllers"
 	"log"
 
@@ -15,7 +16,10 @@ import (
 func main() {
 
 	app := iris.New()
-	app.Logger().SetLevel("debug") // more logging
+	// app.Logger().SetLevel("debug") // more logging
+
+	// Load env's
+	environment.InitEnv()
 
 	app.Use(logger.New())  // logs request
 	app.Use(recover.New()) // handles panics (shows 404)
@@ -61,6 +65,10 @@ func main() {
 	signup := mvc.New(app.Party("/signup"))
 	signup.Register(db)
 	signup.Handle(new(controllers.SignupController))
+
+	api := mvc.New(app.Party("/api"))
+	api.Register(db)
+	api.Handle(new(controllers.ApiController))
 
 	app.Listen(":8080")
 }
