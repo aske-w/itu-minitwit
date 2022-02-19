@@ -15,10 +15,11 @@ Documentation: https://www.vagrantup.com/docs
 
 ### Plugins
 
-- `vagrant plugin install vagrant-digitalocean`
+- `vagrant plugin install vagrant-digitalocean` enable digitalocean
 - `vagrant plugin install vagrant-scp`
 - `vagrant plugin install vagrant-vbguest`
 - `vagrant plugin install vagrant-reload`
+- `vagrant plugin install vagrant-env` load .env files
 - WMWARE: `vagrant plugin install vagrant-vmware-desktop`
 
 ## VirtualBox networking
@@ -39,4 +40,16 @@ Now we can create networks in the Vagrant file:
         server.vm.network "private_network", ip: "192.168.62.1" # <---
         server.vm.network "forwarded_port", guest: 8080, host: 8080
 
+```
+
+## Synced folders
+To sync folders in into the VM add following line
+```ruby
+config.vm.synced_folder ".", "/vagrant", type: "rsync" # "rsync" for digitalocean. "virtualbox" for virtualbox
+```
+
+Hidden files (dot files) are not synced. So we need to manually fetch them:
+```ruby
+config.vm.define "webserver", primary: true do |server|
+      server.vm.provision "file", source: ".env", destination: ".env"
 ```
