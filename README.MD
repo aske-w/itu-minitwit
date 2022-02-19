@@ -1,3 +1,6 @@
+# Digital Ocean.
+Floating IP (static ip): `67.207.75.163`
+
 # MacOS
 
 ## Vagrant
@@ -65,6 +68,8 @@ Create .env in root folder and copy the contents of .env.example. Fill out the f
 
 
 ## Running api tests
+Make sure the ```requests```library is installed. You can install it using ```pip install requests```.
+Also make sure the library is added to your path afterwards.
 in /python_api_tests: ```python3 minitwit_simulator.py "http://67.207.75.163:8080/api"```
 
 

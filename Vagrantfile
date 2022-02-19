@@ -28,6 +28,9 @@ Vagrant.configure("2") do |config|
       server.vm.provision "file", source: ".env", destination: ".env"
       server.vm.provision "shell", privileged: false, inline: <<-SHELL
           echo "INSIDE PROVISION SCRIPT!"
+          
+         
+
           sudo apt-get update
           
           # SQLITE is not installed:
@@ -64,16 +67,31 @@ Vagrant.configure("2") do |config|
           if [[ -e $HOME/db.db ]]; then
             rm /vagrant/db.db
           else
-            cat schema.sql | sqlite3 db.db
+            # cat schema.sql | sqlite3 db.db
             echo "No DB file found. Overwriting."
           fi 
 
           cp -r /vagrant/* $HOME
           export THIS_IP=`hostname -I | cut -d" " -f1`
-          echo "http://${THIS_IP}:8080"
-          nohup go run main.go > out.log 2>&1 &
           
-         
+          # stops the current running process
+          if [[ -e save_pid.txt ]]; then
+            PID=`cat save_pid.txt`
+            
+            # If the process is running - kill it
+            echo "Killing old running process $PID"
+            kill -0 $PID
+
+            rm save_pid.txt  
+          fi
+              
+          # build executable
+          go build main.go
+          # run in background, while logging to out.log
+          nohup ./main > out.log 2>&1 & echo $! > save_pid.txt 
+          # "dollarsign exclamation" is PID of last program (./main)
+          echo "http://${THIS_IP}:8080"
+            
       SHELL
     end
   

@@ -76,6 +76,7 @@ func public_timeline(c *IndexController) []*Timeline {
 		}
 		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
 		utils.CheckError(err)
+
 		timeline = append(timeline, group)
 	}
 
