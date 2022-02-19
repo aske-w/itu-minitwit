@@ -52,7 +52,7 @@ type FilteredMsg struct {
 }
 
 type Message struct {
-	Text string `json:"text"`
+	Content string `json:"Content"`
 }
 
 type FilteredMsgs []iris.Map
@@ -208,12 +208,10 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 	}
 
 	userId := user.User_id
-
 	msg := Message{}
 
 	readBody(c, &msg)
-
-	text := msg.Text
+	text := msg.Content
 	if text != "" {
 		_, err := c.DB.Exec(
 			c.Ctx,
