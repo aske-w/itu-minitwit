@@ -14,7 +14,7 @@ Vagrant.configure("2") do |config|
       # server.vm.network "forwarded_port", guest: 8080, host: 8080
       
       #config.vm.provision "file", source: "~/path/to/host/folder", destination: "$HOME/remote/newfolder"
-      server.vm.provider "virtualbox" do |vb|
+      server.vm.provider "digital_ocean" do |provider|
         provider.ssh_key_name = ENV["SSH_KEY_NAME"]
         provider.token = ENV["DIGITAL_OCEAN_TOKEN"]
         provider.image = 'ubuntu-18-04-x64'
@@ -28,7 +28,8 @@ Vagrant.configure("2") do |config|
       server.vm.provision "file", source: ".env", destination: ".env"
       server.vm.provision "shell", privileged: false, inline: <<-SHELL
           echo "INSIDE PROVISION SCRIPT!"
-          
+          sudo apt-get update
+          sudo apt-get install -y build-essential
           export GO_VERSION="go1.17.7.linux-amd64"
           sudo curl -O https://storage.googleapis.com/golang/$GO_VERSION.tar.gz
           sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf $GO_VERSION.tar.gz

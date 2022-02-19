@@ -13,6 +13,12 @@ Check if installed correctly with `vagrant --version`
 
 Documentation: https://www.vagrantup.com/docs
 
+After you have installed Vagrant and created your Vagrantfile, you can start it with `vagrant up`
+To delete the vm again write `vagrant destroy`.
+To run the provision scripts again, on an existing vm run `vagrant provision --provision-with shell`
+See more here: https://www.vagrantup.com/docs/cli/up
+
+
 ### Plugins
 
 - `vagrant plugin install vagrant-digitalocean` enable digitalocean
@@ -53,3 +59,6 @@ Hidden files (dot files) are not synced. So we need to manually fetch them:
 config.vm.define "webserver", primary: true do |server|
       server.vm.provision "file", source: ".env", destination: ".env"
 ```
+
+## Configuration
+Create .env in root folder and copy the contents of .env.example. Fill out the fields with your information. The keys DIGITAL_OCEAN_TOKEN and SSH_KEY_NAME are configured from digital ocean. 
