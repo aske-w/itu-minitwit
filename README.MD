@@ -62,3 +62,11 @@ config.vm.define "webserver", primary: true do |server|
 
 ## Configuration
 Create .env in root folder and copy the contents of .env.example. Fill out the fields with your information. The keys DIGITAL_OCEAN_TOKEN and SSH_KEY_NAME are configured from digital ocean. 
+
+
+## Running api tests
+in /python_api_tests: ```python3 minitwit_simulator.py "http://67.207.75.163:8080/api"```
+
+
+## Reading log file on server
+run command in vagrant ```tail -f -n100 out.log```

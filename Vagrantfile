@@ -29,22 +29,37 @@ Vagrant.configure("2") do |config|
       server.vm.provision "shell", privileged: false, inline: <<-SHELL
           echo "INSIDE PROVISION SCRIPT!"
           sudo apt-get update
-          sudo apt-get install -y build-essential
-          export GO_VERSION="go1.17.7.linux-amd64"
-          sudo curl -O https://storage.googleapis.com/golang/$GO_VERSION.tar.gz
-          sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf $GO_VERSION.tar.gz
+          if [[ ! -e gcc ]]; then
+            sudo apt-get install -y build-essential
+          else 
+            echo "Gcc already installed. Skipping."
+          fi
+          # Go is not installed:
+          if [[ ! -e go ]]; then
+            export GO_VERSION="go1.17.7.linux-amd64"
+            sudo curl -O https://storage.googleapis.com/golang/$GO_VERSION.tar.gz
+            sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf $GO_VERSION.tar.gz
+            
+            
+            
+            echo ". $HOME/.bashrc" >> $HOME/.bash_profile
+            echo "export PATH=/usr/local/go/bin:$PATH" >> $HOME/.bash_profile
+            export PATH="/usr/local/go/bin:$PATH"
+            source $HOME/.bash_profile
+          else 
+            echo "Go already installed. Skipping."
+          fi  
 
-          
-
-          echo ". $HOME/.bashrc" >> $HOME/.bash_profile
-          echo "export PATH=/usr/local/go/bin:$PATH" >> $HOME/.bash_profile
-          export PATH="/usr/local/go/bin:$PATH"
-          source $HOME/.bash_profile
+          if [[ -e $HOME/db.db ]]; then
+            rm /vagrant/db.db
+          else
+            echo "No DB file found. Overwriting."
+          fi 
 
           cp -r /vagrant/* $HOME
           export THIS_IP=`hostname -I | cut -d" " -f1`
           echo "http://${THIS_IP}:8080"
-          nohup go run main.go
+          nohup go run main.go > out.log 2>&1 &
           
          
       SHELL
