@@ -3,7 +3,7 @@
 {{ if .LoggedIn }}
     {{ if eq .Endpoint "user_timeline" }}
       <div class=followstatus>
-      {{ if eq .User.User_id  .ProfileUser.User_id }}
+      {{ if eq .User.ID  .ProfileUser.ID }}
         This is you!
       {{ else if .Followed }}
         You are currently following this user.

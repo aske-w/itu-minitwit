@@ -9,31 +9,15 @@ import (
 /*
 Returns the user_id from the session as the first in the tuple and if it was succesful in the second part
 */
-func GetUserIdFromSession(session *sessions.Session) (string, bool) {
-	user_id := session.GetString("user_id")
-	if len(user_id) == 0 {
-		return "", false
+func GetUserIdFromSession(session *sessions.Session) (int, bool) {
+
+	user_id := session.GetIntDefault("user_id", -1)
+
+	if user_id < 0 {
+		return -1, false
 	}
 	return user_id, true
 }
-
-// func GetUserById(userId string, db *database.SQLite, ctx iris.Context) (entity.User, error) {
-// 	var user entity.User
-// 	err := db.Get(ctx, &user, "select * from user where user_id = ?", userId)
-// 	if err != nil {
-// 		return user, err
-// 	}
-// 	return user, nil
-
-// }
-// func GetUserByUsername(username string, db *database.SQLite, ctx iris.Context) (entity.User, error) {
-// 	var user entity.User
-// 	err := db.Get(ctx, &user, "select * from user where username = ?", username)
-// 	if err != nil {
-// 		return user, err
-// 	}
-// 	return user, nil
-// }
 
 func CheckError(err error) {
 	if err != nil {

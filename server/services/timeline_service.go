@@ -49,6 +49,27 @@ func (s *TimelineService) GetPublicTimeline() (*[]Tweet, error) {
 	return &tweets, nil
 }
 
+func (s *TimelineService) GetUserTimeline(userId int) (*[]Tweet, error) {
+
+	// rows, err := c.DB.Raw(`
+	// select  user.*, message.* from message, user where
+	// user.user_id = message.author_id and user.user_id = ?
+	// order by message.pub_date desc limit ?`, userId, 30).Rows()
+
+	tweets := []Tweet{}
+	err := s.DB.Model(&models.User{}).Where("users.id = ?", userId).Select("users.id as UserId", "users.Username", "users.Email", "messages.id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
+
+	if err != nil {
+		return nil, err
+	}
+	for i, tweet := range tweets {
+		tweets[i].Gravatar_Url = gravatar_url(tweet.Email, 48)
+		tweets[i].Format_Datetime = format_datetime(tweet.Pub_date)
+	}
+
+	return &tweets, nil
+}
+
 func format_datetime(timestamp int) string {
 	unix := time.Unix(int64(timestamp), 0)
 	return unix.Format("2006-01-02T15:04:05Z07:00")

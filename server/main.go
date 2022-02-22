@@ -17,7 +17,7 @@ import (
 func main() {
 
 	app := iris.New()
-	app.Logger().SetLevel("debug") // more logging
+	// app.Logger().SetLevel("debug") // more logging
 
 	// Load env's
 	environment.InitEnv()
@@ -26,7 +26,11 @@ func main() {
 	app.Use(recover.New()) // handles panics (shows 404)
 
 	// Configure sessions manager.
-	sess := sessions.New(sessions.Config{Cookie: "itu-minitwit-cookie"})
+	sess := sessions.New(sessions.Config{
+		Cookie:                      "itu-minitwit-cookie",
+		AllowReclaim:                true,
+		DisableSubdomainPersistence: true,
+	})
 	app.Use(sess.Handler())
 
 	// Add html files
@@ -46,36 +50,23 @@ func main() {
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
+	userService := services.NewUserService(db)
+	authService := services.NewAuthService(db)
+	timelineService := services.NewTimelineService(db)
+	messageService := services.NewMessageService(db)
 
 	// I cant figure out how to have global DI, when using MVC pattern?
 	index := mvc.New(app.Party("/"))
-	// register db in dependecy injection container
 	index.Register(db)
-	timelineService := services.NewTimelineService(db)
 	index.Register(timelineService)
-	messageService := services.NewMessageService(db)
 	index.Register(messageService)
+	index.Register(userService)
 	index.Handle(new(controllers.IndexController))
 
-	// register db in dependecy injection container
 	Auth := mvc.New(app.Party("/"))
-	userService := services.NewUserService(db)
 	Auth.Register(userService)
-	authService := services.NewAuthService(db)
 	Auth.Register(authService)
 	Auth.Handle(new(controllers.AuthController))
-	// login := mvc.New(app.Party("/login"))
-	// // register db in dependecy injection container
-	// login.Register(db)
-	// login.Handle(new(controllers.LoginController))
-
-	// logout := mvc.New(app.Party("/logout"))
-	// logout.Register(db)
-	// logout.Handle(new(controllers.LogoutController))
-
-	// signup := mvc.New(app.Party("/signup"))
-	// signup.Register(db)
-	// signup.Handle(new(controllers.SignupController))
 
 	// api := mvc.New(app.Party("/api"))
 	// api.Register(db)

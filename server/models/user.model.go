@@ -4,10 +4,11 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
+	ID        uint `gorm:"primaryKey"`
 	Username  string
 	Email     string
 	Pw_Hash   string
-	Followers []User `gorm:"many2many:follower"`
+	Followers []User `gorm:"many2many:followers"`
 	// Messages  []Message `gorm:"foreignKey:Author_id"`
 }
 
