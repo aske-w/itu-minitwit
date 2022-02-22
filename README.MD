@@ -78,3 +78,6 @@ run command in vagrant ```tail -f -n100 out.log```
 
 ## Creating tables in an empty db.db
 Run the command ```cat schema.sql | sqlite3 db.db``` in bash
+
+## Encrypting keys in travis
+run cmd ```travis encrypt-file minitwit_dd --com -r aske-w/itu-minitwit```
