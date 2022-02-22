@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/entity"
 	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/web/utils"
@@ -63,36 +62,35 @@ func gravatar_url(email string, size int) string {
 }
 
 func public_timeline(c *IndexController) []*Timeline {
-	// c.DB.Model(&models.User{}).Find()
-	rows, err := c.DB.db.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 30)
-
-	utils.CheckError(err)
-	defer rows.Close()
-
 	timeline := make(Timelines, 0)
+	c.DB.Model(&models.User{}).Find("id as userId,Username,Email,Pw_hash,Message_id,Author_id,Text,Pub_date,Flagged").Joins("INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0").Order("message.pub_date DESC").Limit(30).Scan(&timeline)
+	// rows, err := c.DB.db.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 30)
 
-	for rows.Next() {
-		group := &Timeline{
-			Gravatar_Url:    gravatar_url,
-			Format_Datetime: format_datetime,
-		}
-		err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
-		utils.CheckError(err)
+	// utils.CheckError(err)
+	// defer rows.Close()
 
-		timeline = append(timeline, group)
-	}
+	// for rows.Next() {
+	// 	group := &Timeline{
+	// 		Gravatar_Url:    gravatar_url,
+	// 		Format_Datetime: format_datetime,
+	// 	}
+	// 	err = rows.Scan(&group.UserId, &group.Username, &group.Email, &group.Pw_hash, &group.Message_id, &group.Author_id, &group.Text, &group.Pub_date, &group.Flagged)
+	// 	utils.CheckError(err)
+
+	// 	timeline = append(timeline, group)
+	// }
 
 	return timeline
 }
 
 func private_timeline(c *IndexController, userId string) []*Timeline {
-	rows, err := c.DB.db.Query(`
+	rows, err := c.DB.Raw(`
 	select  user.*, message.* from message, user
 	where message.flagged = 0 and message.author_id = user.user_id and (
 		user.user_id = ? or
 		user.user_id in (select whom_id from follower
 								where who_id = ?))
-	order by message.pub_date desc limit ?`, userId, userId, 10)
+	order by message.pub_date desc limit ?`, userId, userId, 10).Rows()
 
 	utils.CheckError(err)
 	defer rows.Close()
@@ -114,10 +112,10 @@ func private_timeline(c *IndexController, userId string) []*Timeline {
 }
 
 func user_timeline(c *IndexController, userId int) []*Timeline {
-	rows, err := c.DB.db.Query(`
+	rows, err := c.DB.Raw(`
 	select  user.*, message.* from message, user where
 	user.user_id = message.author_id and user.user_id = ?
-	order by message.pub_date desc limit ?`, userId, 30)
+	order by message.pub_date desc limit ?`, userId, 30).Rows()
 
 	utils.CheckError(err)
 	defer rows.Close()
@@ -141,8 +139,8 @@ func user_timeline(c *IndexController, userId int) []*Timeline {
 func (c *IndexController) UserId() string {
 	return c.Session.GetString("user_id")
 }
-func (c *IndexController) User() (entity.User, error) {
-	return utils.GetUserById(c.UserId(), c.DB, c.Ctx)
+func (c *IndexController) User() (models.User, error) {
+	return c.db.First(c.UserId(), c.DB, c.Ctx)
 }
 func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 
@@ -153,9 +151,11 @@ func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 }
 
 func (c *IndexController) get_user_id(username string) string {
-	var userId string
-	c.DB.Get(c.Ctx, &userId, "select user_id from user where username = ?", username)
-	return userId
+
+	user := &models.User{}
+	// c.DB.Get(c.Ctx, &userId, "select user_id from user where username = ?", username)
+	c.DB.First(user).Where("username = ?", username)
+	return string(user.ID)
 }
 
 func (c *IndexController) UnfollowHandler(username string) mvc.View {
@@ -169,7 +169,6 @@ func (c *IndexController) UnfollowHandler(username string) mvc.View {
 	}
 
 	c.DB.Exec(
-		c.Ctx,
 		"delete from follower where who_id=? and whom_id=?",
 		userId, whomId,
 	)
@@ -189,7 +188,6 @@ func (c *IndexController) FollowHandler(username string) mvc.View {
 		}
 	}
 	c.DB.Exec(
-		c.Ctx,
 		"insert into follower (who_id, whom_id) values (?, ?)",
 		userId, whomId,
 	)
@@ -210,7 +208,6 @@ func (c *IndexController) AddMessageHandler() mvc.View {
 	text := c.Ctx.FormValue("text")
 	if text != "" {
 		c.DB.Exec(
-			c.Ctx,
 			"insert into message (author_id, text, pub_date, flagged)	values (?, ?, ?, 0)",
 			userId,
 			text,
@@ -231,6 +228,7 @@ func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 		}
 	}
 	var followed bool
+	c.DB.Find(&models.User{Followers: int[profile_user.User_id], ID: user.ID})
 	c.DB.Get(c.Ctx, &followed, `
 	select 1 from follower where
             follower.who_id = ? and follower.whom_id = ?

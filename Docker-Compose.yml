@@ -1,18 +1,18 @@
 version: "3.9"
 
 services: 
-  # server:
-  #   build:
-  #     context: . # docker file path
-  #     dockerfile: Dockerfile # docker file name
-  #   #image: itu-minitwit
-  #   container_name: itu-minitwit
-  #   ports:
-  #     - "8080:8080"   # docker port : localhost port
-  #   depends_on:
-  #     - db
-  #   networks:
-  #     - app-network
+  server:
+    build:
+      context: . # docker file path
+      dockerfile: Dockerfile # docker file name
+    #image: itu-minitwit
+    container_name: itu-minitwit
+    ports:
+      - "8080:8080"   # docker port : localhost port
+    depends_on:
+      - db
+    networks:
+      - app-network
 
   db:
     image: mysql:8
@@ -28,9 +28,7 @@ services:
       # Password for root access
       - MYSQL_ROOT_PASSWORD=password
     ports:
-      - 3306:3306
-    expose:
-      - 3306
+      - 3307:3306
     volumes:
       - db_data:/var/lib/mysql
     #   - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
