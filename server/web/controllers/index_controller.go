@@ -7,6 +7,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +23,7 @@ type IndexController struct {
 	DB *gorm.DB
 
 	TimelineService *services.TimelineService
+	MessageService  *services.MessageService
 	// Session, binded using dependency injection from the main.go.
 	Session *sessions.Session
 }
@@ -202,7 +204,7 @@ func (c *IndexController) FollowHandler(username string) mvc.View {
 }
 
 func (c *IndexController) AddMessageHandler() mvc.View {
-
+	println("add message handler")
 	userId := c.UserId()
 	if userId == "" {
 		return mvc.View{
@@ -212,13 +214,11 @@ func (c *IndexController) AddMessageHandler() mvc.View {
 	}
 
 	text := c.Ctx.FormValue("text")
+	println(text)
 	if text != "" {
-		c.DB.Exec(
-			"insert into message (author_id, text, pub_date, flagged)	values (?, ?, ?, 0)",
-			userId,
-			text,
-			time.Now().Unix(),
-		)
+		userIdInt, _ := strconv.Atoi(userId)
+		fmt.Println("userId: ", userIdInt)
+		c.MessageService.CreateMessage(userIdInt, text)
 	}
 	c.Ctx.Redirect("/")
 	return mvc.View{}
@@ -278,14 +278,17 @@ func (c *IndexController) GetPublic() mvc.Result {
 func (c *IndexController) Get() mvc.Result {
 
 	var messages []*Timeline
-
+	// fmt.Println(c.Session.GetString("user_id"))
+	fmt.Println(c.Session.GetString("user_id"))
 	userId, loggedIn := utils.GetUserIdFromSession(c.Session)
 	var user models.User
 	if loggedIn {
+		println("LOGGEDIN")
 		c.DB.First(&user, userId)
-		messages = private_timeline(c, userId)
+		// messages = []Timeline{} //private_timeline(c, userId)
 
 	} else {
+		println("NOT LOGGEDIN")
 		c.Ctx.Redirect("/public")
 	}
 

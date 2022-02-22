@@ -97,7 +97,7 @@ func (c *AuthController) PostLogin() mvc.Result {
 		if !passwordMatch {
 			error = "Invalid password"
 		} else {
-			c.Session.Set("user_id", user.ID)
+			c.Session.Set("user_id", string(user.ID))
 			c.Ctx.Redirect("/")
 		}
 	}

@@ -17,7 +17,7 @@ import (
 func main() {
 
 	app := iris.New()
-	// app.Logger().SetLevel("debug") // more logging
+	app.Logger().SetLevel("debug") // more logging
 
 	// Load env's
 	environment.InitEnv()
@@ -53,6 +53,8 @@ func main() {
 	index.Register(db)
 	timelineService := services.NewTimelineService(db)
 	index.Register(timelineService)
+	messageService := services.NewMessageService(db)
+	index.Register(messageService)
 	index.Handle(new(controllers.IndexController))
 
 	// register db in dependecy injection container

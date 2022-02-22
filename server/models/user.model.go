@@ -8,6 +8,7 @@ type User struct {
 	Email     string
 	Pw_Hash   string
 	Followers []User `gorm:"many2many:follower"`
+	// Messages  []Message `gorm:"foreignKey:Author_id"`
 }
 
 /*

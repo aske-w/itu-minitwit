@@ -20,8 +20,8 @@ type Tweet struct {
 	Text            string
 	Pub_date        int
 	Flagged         int
-	Gravatar_Url    func(email string, size int) string
-	Format_Datetime func(timestamp int) string
+	Gravatar_Url    string
+	Format_Datetime string
 }
 
 type TimelineService struct {
@@ -36,15 +36,16 @@ func NewTimelineService(db *gorm.DB) *TimelineService {
 func (s *TimelineService) GetPublicTimeline() (*[]Tweet, error) {
 
 	tweets := []Tweet{}
-	err := s.DB.Model(&models.User{}).Find("id as UserId,Username,Email,Message_id,Author_id,Text,Pub_date,Flagged").Joins("INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0").Order("message.pub_date DESC").Limit(30).Scan(&tweets).Error
+	err := s.DB.Model(&models.User{}).Select("users.id as UserId", "users.Username", "users.Email", "messages.id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
 
 	if err != nil {
 		return nil, err
 	}
-	for _, tweet := range tweets {
-		tweet.Gravatar_Url = gravatar_url
-		tweet.Format_Datetime = format_datetime
+	for i, tweet := range tweets {
+		tweets[i].Gravatar_Url = gravatar_url(tweet.Email, 48)
+		tweets[i].Format_Datetime = format_datetime(tweet.Pub_date)
 	}
+
 	return &tweets, nil
 }
 

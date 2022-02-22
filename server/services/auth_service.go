@@ -16,7 +16,6 @@ func NewAuthService(db *gorm.DB) *AuthService {
 }
 
 func (s *AuthService) CreateUser(username string, email string, password string) (uint, error) {
-	println("CreateUser")
 
 	pwHash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
