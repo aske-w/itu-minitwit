@@ -139,8 +139,12 @@ func user_timeline(c *IndexController, userId int) []*Timeline {
 func (c *IndexController) UserId() string {
 	return c.Session.GetString("user_id")
 }
-func (c *IndexController) User() (models.User, error) {
-	return c.db.First(c.UserId(), c.DB, c.Ctx)
+func (c *IndexController) User() (*models.User, error) {
+	var userId = c.UserId()
+	user := &models.User{}
+
+	c.DB.First(user, userId)
+	return user, nil
 }
 func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 
