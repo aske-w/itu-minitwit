@@ -1,0 +1,21 @@
+package models
+
+import "gorm.io/gorm"
+
+type User struct {
+	gorm.Model
+	Username  string
+	Email     string
+	Pw_Hash   string
+	Followers []User `gorm:"many2many:follower"`
+}
+
+/*
+// gorm.Model definition
+type Model struct {
+	ID        uint `gorm:"primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
+*/

@@ -5,7 +5,7 @@ FROM golang:1.17-stretch
 RUN mkdir /app
 
 # Copy all files locally from the Docker file to our working direcotry
-ADD . /app
+ADD ./server /app
 
 # Set working dir
 WORKDIR /app

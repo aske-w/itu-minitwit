@@ -131,7 +131,7 @@ func (c *ApiController) RegisterHandler() {
 			var byteHash []byte
 			byteHash, err = bcrypt.GenerateFromPassword([]byte(password), 10)
 			if err == nil {
-				_, err = c.DB.Conn.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
+				_, err = c.DB.db.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
 				if err == nil {
 					c.Ctx.StatusCode(204)
 					return
@@ -156,7 +156,7 @@ func (c *ApiController) MsgHandler() {
 
 	no_msg := c.Ctx.Params().GetIntDefault("no", 100)
 
-	rows, err := c.DB.Conn.Query("SELECT user.username, message.text, message.pub_date  FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", no_msg)
+	rows, err := c.DB.db.Query("SELECT user.username, message.text, message.pub_date  FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", no_msg)
 	utils.CheckError(err)
 	defer rows.Close()
 
@@ -186,7 +186,7 @@ func (c *ApiController) UserMsgsGetHandler(username string) {
 
 	query := `SELECT user.username, message.text, message.pub_date FROM message, user WHERE message.flagged = 0 AND user.user_id = message.author_id AND user.user_id = ? ORDER BY message.pub_date DESC LIMIT ?`
 
-	rows, err := c.DB.Conn.Query(query, profile_user.User_id, no_msg)
+	rows, err := c.DB.db.Query(query, profile_user.User_id, no_msg)
 	utils.CheckError(err)
 	defer rows.Close()
 
@@ -248,7 +248,7 @@ func (c *ApiController) FollowersGetHandler(username string) {
 	}
 
 	no_followers := c.Ctx.Params().GetIntDefault("no", 100)
-	rows, err := c.DB.Conn.Query("SELECT user.username FROM user INNER JOIN follower ON follower.whom_id=user.user_id WHERE follower.who_id = ? LIMIT ?", user.User_id, no_followers)
+	rows, err := c.DB.db.Query("SELECT user.username FROM user INNER JOIN follower ON follower.whom_id=user.user_id WHERE follower.who_id = ? LIMIT ?", user.User_id, no_followers)
 	utils.CheckError(err)
 	defer rows.Close()
 

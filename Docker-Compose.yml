@@ -1,11 +1,46 @@
-version: "3.8"
+version: "3.9"
 
 services: 
-  server:
-    image: itu-minitwit
-    container_name: itu-minitwit
+  # server:
+  #   build:
+  #     context: . # docker file path
+  #     dockerfile: Dockerfile # docker file name
+  #   #image: itu-minitwit
+  #   container_name: itu-minitwit
+  #   ports:
+  #     - "8080:8080"   # docker port : localhost port
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - app-network
+
+  db:
+    image: mysql:8
+    container_name: db
+    restart: always
+    #command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_DATABASE=db
+      # So you don't have to use root, but you can if you like
+      - MYSQL_USER=user
+      # You can use whatever password you like
+      - MYSQL_PASSWORD=password
+      # Password for root access
+      - MYSQL_ROOT_PASSWORD=password
     ports:
-      - "8080:8080"   # docker port : localhost port
-    build:
-      context: . # docker file path
-      dockerfile: Dockerfile # docker file name
+      - 3306:3306
+    expose:
+      - 3306
+    volumes:
+      - db_data:/var/lib/mysql
+    #   - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+
+#Volumes
+volumes:
+  db_data:

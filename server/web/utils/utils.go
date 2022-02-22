@@ -47,7 +47,7 @@ func CheckError(err error) {
 }
 
 func CountEntries(table string, db *database.SQLite) int {
-	row := db.Conn.QueryRow(fmt.Sprintf("SELECT COUNT(*) AS count FROM %s;", table))
+	row := db.db.QueryRow(fmt.Sprintf("SELECT COUNT(*) AS count FROM %s;", table))
 	var count int
 	row.Scan(&count)
 	return count

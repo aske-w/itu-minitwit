@@ -3,6 +3,7 @@ package controllers
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/entity"
+	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/web/utils"
 	"crypto/md5"
 	"encoding/hex"
@@ -13,12 +14,13 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/kataras/iris/v12/sessions"
+	"gorm.io/gorm"
 )
 
 type IndexController struct {
 	Ctx iris.Context
 
-	DB *database.SQLite
+	DB *gorm.DB
 	// Session, binded using dependency injection from the main.go.
 	Session *sessions.Session
 }
@@ -61,8 +63,8 @@ func gravatar_url(email string, size int) string {
 }
 
 func public_timeline(c *IndexController) []*Timeline {
-
-	rows, err := c.DB.Conn.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 30)
+	// c.DB.Model(&models.User{}).Find()
+	rows, err := c.DB.db.Query(" SELECT * FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", 30)
 
 	utils.CheckError(err)
 	defer rows.Close()
@@ -84,7 +86,7 @@ func public_timeline(c *IndexController) []*Timeline {
 }
 
 func private_timeline(c *IndexController, userId string) []*Timeline {
-	rows, err := c.DB.Conn.Query(`
+	rows, err := c.DB.db.Query(`
 	select  user.*, message.* from message, user
 	where message.flagged = 0 and message.author_id = user.user_id and (
 		user.user_id = ? or
@@ -112,7 +114,7 @@ func private_timeline(c *IndexController, userId string) []*Timeline {
 }
 
 func user_timeline(c *IndexController, userId int) []*Timeline {
-	rows, err := c.DB.Conn.Query(`
+	rows, err := c.DB.db.Query(`
 	select  user.*, message.* from message, user where
 	user.user_id = message.author_id and user.user_id = ?
 	order by message.pub_date desc limit ?`, userId, 30)
