@@ -1,9 +1,9 @@
 os: linux
 dist: bionic
 
-language: python
-python:
-  - 3.7
+language: go
+go:
+  - 1.17x  # any version of go
 
 services:
   - docker  # required, but travis uses older version of docker :(
@@ -24,33 +24,20 @@ install:
   - docker --version  # document the version travis is using
 
 stages:
-  - docker_build
-  - test
+  - build
   - deploy
 
 jobs:
   include:
-    - stage: docker_build
+    - stage: build
       name: "build and push docker"
       script:
         - echo "LOGIN"
         - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
         - echo "BUILD"
-        - docker build -t $DOCKER_USERNAME/minitwitimage:latest . -f Dockerfile-minitwit
-        - docker build -t $DOCKER_USERNAME/mysqlimage:latest . -f Dockerfile-mysql
-        - docker build -t $DOCKER_USERNAME/flagtoolimage:latest . -f Dockerfile-flagtool
+        - docker build -t $DOCKER_USERNAME/minitwitimage:latest . -f Dockerfile
         - echo "PUSH"
         - docker push $DOCKER_USERNAME/minitwitimage:latest
-        - docker push $DOCKER_USERNAME/mysqlimage:latest
-        - docker push $DOCKER_USERNAME/flagtoolimage:latest
-
-    - stage: test
-      name: "run pytest"
-      install: skip
-      script:
-        - docker build -t $DOCKER_USERNAME/minitwittestimage -f Dockerfile-minitwit-tests .
-        - yes | docker-compose up -d
-        - docker run -it --rm --network=itu-minitwit-network $DOCKER_USERNAME/minitwittestimage
 
     - stage: deploy
       name: "deploy new version"
@@ -61,5 +48,4 @@ jobs:
         "source /root/.bash_profile && \
         cd /vagrant && \
         docker-compose pull && \
-        docker-compose up -d && \
-        docker pull $DOCKER_USERNAME/flagtoolimage:latest"
+        docker-compose up -d"
