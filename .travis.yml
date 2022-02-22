@@ -3,7 +3,7 @@ dist: bionic
 
 language: go
 go:
-  - 1.17x  # any version of go
+  - "1.17"  # any version of go
 
 services:
   - docker  # required, but travis uses older version of docker :(
