@@ -1,13 +1,8 @@
 package utils
 
 import (
-	"aske-w/itu-minitwit/database"
-	"aske-w/itu-minitwit/entity"
-	"fmt"
-
 	"log"
 
-	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/sessions"
 )
 
@@ -22,23 +17,23 @@ func GetUserIdFromSession(session *sessions.Session) (string, bool) {
 	return user_id, true
 }
 
-func GetUserById(userId string, db *database.SQLite, ctx iris.Context) (entity.User, error) {
-	var user entity.User
-	err := db.Get(ctx, &user, "select * from user where user_id = ?", userId)
-	if err != nil {
-		return user, err
-	}
-	return user, nil
+// func GetUserById(userId string, db *database.SQLite, ctx iris.Context) (entity.User, error) {
+// 	var user entity.User
+// 	err := db.Get(ctx, &user, "select * from user where user_id = ?", userId)
+// 	if err != nil {
+// 		return user, err
+// 	}
+// 	return user, nil
 
-}
-func GetUserByUsername(username string, db *database.SQLite, ctx iris.Context) (entity.User, error) {
-	var user entity.User
-	err := db.Get(ctx, &user, "select * from user where username = ?", username)
-	if err != nil {
-		return user, err
-	}
-	return user, nil
-}
+// }
+// func GetUserByUsername(username string, db *database.SQLite, ctx iris.Context) (entity.User, error) {
+// 	var user entity.User
+// 	err := db.Get(ctx, &user, "select * from user where username = ?", username)
+// 	if err != nil {
+// 		return user, err
+// 	}
+// 	return user, nil
+// }
 
 func CheckError(err error) {
 	if err != nil {
@@ -46,9 +41,9 @@ func CheckError(err error) {
 	}
 }
 
-func CountEntries(table string, db *database.SQLite) int {
-	row := db.db.QueryRow(fmt.Sprintf("SELECT COUNT(*) AS count FROM %s;", table))
-	var count int
-	row.Scan(&count)
-	return count
-}
+// func CountEntries(table string, db *database.SQLite) int {
+// 	row := db.db.QueryRow(fmt.Sprintf("SELECT COUNT(*) AS count FROM %s;", table))
+// 	var count int
+// 	row.Scan(&count)
+// 	return count
+// }

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"aske-w/itu-minitwit/entity"
 	"aske-w/itu-minitwit/models"
+	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/utils"
 	"crypto/md5"
 	"encoding/hex"
@@ -20,6 +20,8 @@ type IndexController struct {
 	Ctx iris.Context
 
 	DB *gorm.DB
+
+	TimelineService *services.TimelineService
 	// Session, binded using dependency injection from the main.go.
 	Session *sessions.Session
 }
@@ -111,7 +113,7 @@ func private_timeline(c *IndexController, userId string) []*Timeline {
 	return timeline
 }
 
-func user_timeline(c *IndexController, userId int) []*Timeline {
+func user_timeline(c *IndexController, userId uint) []*Timeline {
 	rows, err := c.DB.Raw(`
 	select  user.*, message.* from message, user where
 	user.user_id = message.author_id and user.user_id = ?
@@ -224,28 +226,31 @@ func (c *IndexController) AddMessageHandler() mvc.View {
 
 func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 	user, _ := c.User()
-	profile_user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
-	if err != nil {
-		return mvc.View{
-			Data: iris.Map{"Message": "User not found"},
-			Code: 404,
-		}
+	profile_user := &models.User{
+		Username: username,
 	}
+	c.DB.First(profile_user)
+	// if err != nil {
+	// 	return mvc.View{
+	// 		Data: iris.Map{"Message": "User not found"},
+	// 		Code: 404,
+	// 	}
+	// }
 	var followed bool
-	c.DB.Find(&models.User{Followers: int[profile_user.User_id], ID: user.ID})
-	c.DB.Get(c.Ctx, &followed, `
+	// c.DB.Find(&models.User{Followers: int[profile_user.User_id], ID: user.ID})
+	c.DB.Raw(`
 	select 1 from follower where
             follower.who_id = ? and follower.whom_id = ?
-	`, user.User_id, profile_user.User_id)
+	`, user.ID, profile_user.ID).Scan(&followed)
 
-	messages := user_timeline(c, profile_user.User_id)
+	messages := user_timeline(c, profile_user.ID)
 
 	return mvc.View{
 		Name: "timeline.html",
 		Data: iris.Map{
 			"Title":       profile_user.Username + "'s timeline",
 			"User":        user,
-			"LoggedIn":    user.User_id > 0,
+			"LoggedIn":    user.ID > 0,
 			"Messages":    messages,
 			"ProfileUser": profile_user,
 			"Endpoint":    "user_timeline",
@@ -256,14 +261,14 @@ func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 
 func (c *IndexController) GetPublic() mvc.Result {
 	user, _ := c.User()
-	messages := public_timeline(c)
+	messages, _ := c.TimelineService.GetPublicTimeline()
 	return mvc.View{
 		Name: "timeline.html",
 		Data: iris.Map{
 			"Title":    "Public timeline",
 			"Messages": messages,
 			"User":     user,
-			"LoggedIn": user.User_id > 0,
+			"LoggedIn": user.ID > 0,
 			"Endpoint": "timeline",
 		},
 	}
@@ -275,13 +280,11 @@ func (c *IndexController) Get() mvc.Result {
 	var messages []*Timeline
 
 	userId, loggedIn := utils.GetUserIdFromSession(c.Session)
-	var user entity.User
+	var user models.User
 	if loggedIn {
-		_user, err := utils.GetUserById(userId, c.DB, c.Ctx)
-		utils.CheckError(err)
+		c.DB.First(&user, userId)
 		messages = private_timeline(c, userId)
 
-		user = _user
 	} else {
 		c.Ctx.Redirect("/public")
 	}

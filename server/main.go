@@ -3,6 +3,7 @@ package main
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/environment"
+	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/controllers"
 	"log"
 
@@ -50,25 +51,33 @@ func main() {
 	index := mvc.New(app.Party("/"))
 	// register db in dependecy injection container
 	index.Register(db)
-
+	timelineService := services.NewTimelineService(db)
+	index.Register(timelineService)
 	index.Handle(new(controllers.IndexController))
 
-	login := mvc.New(app.Party("/login"))
 	// register db in dependecy injection container
-	login.Register(db)
-	login.Handle(new(controllers.LoginController))
+	Auth := mvc.New(app.Party("/"))
+	userService := services.NewUserService(db)
+	Auth.Register(userService)
+	authService := services.NewAuthService(db)
+	Auth.Register(authService)
+	Auth.Handle(new(controllers.AuthController))
+	// login := mvc.New(app.Party("/login"))
+	// // register db in dependecy injection container
+	// login.Register(db)
+	// login.Handle(new(controllers.LoginController))
 
-	logout := mvc.New(app.Party("/logout"))
-	logout.Register(db)
-	logout.Handle(new(controllers.LogoutController))
+	// logout := mvc.New(app.Party("/logout"))
+	// logout.Register(db)
+	// logout.Handle(new(controllers.LogoutController))
 
-	signup := mvc.New(app.Party("/signup"))
-	signup.Register(db)
-	signup.Handle(new(controllers.SignupController))
+	// signup := mvc.New(app.Party("/signup"))
+	// signup.Register(db)
+	// signup.Handle(new(controllers.SignupController))
 
-	api := mvc.New(app.Party("/api"))
-	api.Register(db)
-	api.Handle(new(controllers.ApiController))
+	// api := mvc.New(app.Party("/api"))
+	// api.Register(db)
+	// api.Handle(new(controllers.ApiController))
 
 	app.Listen(":8080")
 }
