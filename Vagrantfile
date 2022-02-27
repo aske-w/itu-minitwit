@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
 	
 		#config.vm.provision "file", source: "~/path/to/host/folder", destination: "$HOME/remote/newfolder"
 		server.vm.provider "digital_ocean" do |provider|
-			provider.ssh_key_name = 'minitwit_dd'
+			provider.ssh_key_name = 'do_ssh_key'
 			provider.token = ENV["DIGITAL_OCEAN_TOKEN"]
 			provider.image = 'docker-18-04'
 			provider.region = 'fra1'
