@@ -57,20 +57,23 @@ func main() {
 
 	// I cant figure out how to have global DI, when using MVC pattern?
 	index := mvc.New(app.Party("/"))
-	index.Register(db)
 	index.Register(timelineService)
 	index.Register(messageService)
 	index.Register(userService)
 	index.Handle(new(controllers.IndexController))
 
-	Auth := mvc.New(app.Party("/"))
-	Auth.Register(userService)
-	Auth.Register(authService)
-	Auth.Handle(new(controllers.AuthController))
+	auth := mvc.New(app.Party("/"))
+	auth.Register(userService)
+	auth.Register(authService)
+	auth.Handle(new(controllers.AuthController))
 
-	// api := mvc.New(app.Party("/api"))
-	// api.Register(db)
-	// api.Handle(new(controllers.ApiController))
+	api := mvc.New(app.Party("/api"))
+	api.Register(db)
+	api.Register(timelineService)
+	api.Register(messageService)
+	api.Register(userService)
+	api.Register(authService)
+	api.Handle(new(controllers.ApiController))
 
 	app.Listen(":8080")
 }

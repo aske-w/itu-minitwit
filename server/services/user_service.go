@@ -3,7 +3,6 @@ package services
 import (
 	"aske-w/itu-minitwit/models"
 	"errors"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -60,8 +59,6 @@ func (s *UserService) FollowUser(userId int, followerId int) (bool, error) {
 	})
 
 	if err != nil {
-		fmt.Println("FOLLOW ERROR")
-		fmt.Println(err)
 		return false, err
 	}
 	return true, err
@@ -80,4 +77,19 @@ func (s *UserService) UnfollowUser(userId int, followerId int) (bool, error) {
 	}
 	return true, err
 
+}
+
+func (s *UserService) CountUsers() int64 {
+	var count int64
+	s.DB.Table("users").Count(&count)
+	return count
+}
+
+func (s *UserService) GetFollowersByUsername(username string, limit int) []string {
+
+	var names []string
+
+	s.DB.Raw(`SELECT users.username FROM users INNER JOIN followers ON followers.follower_id=users.id WHERE followers.user_id = (SELECT id from users where username = ?) LIMIT ?`, username, limit).Scan(&names)
+
+	return names
 }
