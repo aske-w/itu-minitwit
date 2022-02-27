@@ -28,6 +28,31 @@ func (s *UserService) GetById(userId int) (*models.User, error) {
 	}
 	return user, nil
 }
+func (s *UserService) UsernameToId(username string) (int, error) {
+
+	var id int
+	err := s.DB.Table("users").Where("username = ?", username).Select("id").Scan(&id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return -1, nil
+	} else if err != nil {
+		return -1, err
+	}
+	return id, nil
+}
+
+func (s *UserService) CheckUsernameExists(username string) (bool, error) {
+	var exists bool
+	err := s.DB.Model(&models.User{}).
+		Select("count(*) > 0").
+		Where("username = ?", username).
+		Find(&exists).
+		Error
+	if err != nil {
+		return exists, err
+	}
+	return exists, err
+}
+
 func (s *UserService) FindByUsername(username string) (*models.User, error) {
 
 	user := &models.User{}

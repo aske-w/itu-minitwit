@@ -130,9 +130,9 @@ func (c *ApiController) RegisterHandler() {
 		err = fmt.Errorf("you have to enter a password")
 	} else {
 
-		user, _ := c.UserService.FindByUsername(username)
+		exists, _ := c.UserService.CheckUsernameExists(username)
 
-		if user != nil {
+		if exists {
 			err = fmt.Errorf("the username is already taken")
 		} else {
 			_, err := c.AuthService.CreateUser(username, email, password)
@@ -193,9 +193,9 @@ func (c *ApiController) UserMsgsGetHandler(username string) {
 	}
 
 	no_msg := c.Ctx.Params().GetIntDefault("no", 100)
-	profile_user, _ := c.UserService.FindByUsername(username)
+	profile_user_id, _ := c.UserService.UsernameToId(username)
 
-	if profile_user == nil {
+	if profile_user_id == -1 {
 		c.Ctx.StatusCode(404)
 		return
 	}
@@ -203,7 +203,7 @@ func (c *ApiController) UserMsgsGetHandler(username string) {
 	msgs := []FilteredMsg{}
 
 	c.DB.Table("messages, users").Select("users.username as User", "messages.text as Content", "messages.pub_date as Pub_date").Where(
-		"messages.flagged = 0 AND users.id = messages.author_id AND users.id = ?", profile_user.ID,
+		"messages.flagged = 0 AND users.id = messages.author_id AND users.id = ?", profile_user_id,
 	).Order("messages.pub_date DESC").Limit(no_msg).Scan(&msgs)
 
 	c.Ctx.JSON(msgs)
@@ -217,19 +217,18 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 		return
 	}
 
-	user, _ := c.UserService.FindByUsername(username)
-	if user == nil {
+	userId, _ := c.UserService.UsernameToId(username)
+	if userId == -1 {
 		c.Ctx.StatusCode(404)
 		return
 	}
 
-	userId := user.ID
 	msg := Message{}
 
 	readBody(c, &msg)
 	text := msg.Content
 	if text != "" {
-		c.MessageService.CreateMessage(int(userId), text)
+		c.MessageService.CreateMessage(userId, text)
 	}
 	c.Ctx.StatusCode(204)
 }
@@ -265,16 +264,16 @@ func (c *ApiController) FollowersPostHandler(username string) {
 	body := FollowRequest{}
 	readBody(c, &body)
 
-	user, _ := c.UserService.FindByUsername(username)
+	userId, _ := c.UserService.UsernameToId(username)
 
 	if body.Follow != nil && body.Unfollow == nil {
 		// follow
-		follower, _ := c.UserService.FindByUsername(*body.Follow)
-		c.UserService.FollowUser(int(user.ID), int(follower.ID))
+		followerId, _ := c.UserService.UsernameToId(*body.Follow)
+		c.UserService.FollowUser(userId, followerId)
 	} else if body.Follow == nil && body.Unfollow != nil {
 		// un follow
-		follower, _ := c.UserService.FindByUsername(*body.Unfollow)
-		c.UserService.FollowUser(int(user.ID), int(follower.ID))
+		followerId, _ := c.UserService.UsernameToId(*body.Unfollow)
+		c.UserService.FollowUser(userId, followerId)
 	}
 
 	c.Ctx.StatusCode(204)
