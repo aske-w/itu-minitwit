@@ -41,20 +41,12 @@ func (s *TimelineService) GetPublicTimeline() (*[]Tweet, error) {
 	if err != nil {
 		return nil, err
 	}
-	for i, tweet := range tweets {
-		tweets[i].Gravatar_Url = gravatar_url(tweet.Email, 48)
-		tweets[i].Format_Datetime = format_datetime(tweet.Pub_date)
-	}
+	addAvatarAndDates(&tweets)
 
 	return &tweets, nil
 }
 
 func (s *TimelineService) GetUserTimeline(userId int) (*[]Tweet, error) {
-
-	// rows, err := c.DB.Raw(`
-	// select  user.*, message.* from message, user where
-	// user.user_id = message.author_id and user.user_id = ?
-	// order by message.pub_date desc limit ?`, userId, 30).Rows()
 
 	tweets := []Tweet{}
 	err := s.DB.Model(&models.User{}).Where("users.id = ?", userId).Select("users.id as UserId", "users.Username", "users.Email", "messages.id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
@@ -62,12 +54,36 @@ func (s *TimelineService) GetUserTimeline(userId int) (*[]Tweet, error) {
 	if err != nil {
 		return nil, err
 	}
-	for i, tweet := range tweets {
-		tweets[i].Gravatar_Url = gravatar_url(tweet.Email, 48)
-		tweets[i].Format_Datetime = format_datetime(tweet.Pub_date)
-	}
+	addAvatarAndDates(&tweets)
 
 	return &tweets, nil
+}
+func (s *TimelineService) GetPrivateTimeline(userId int) (*[]Tweet, error) {
+
+	tweets := []Tweet{}
+	err := s.DB.Raw(`SELECT users.id as UserId, users.Username, users.Email, messages.id, messages.Author_id, messages.Text, messages.Pub_date, messages.Flagged from users, messages where messages.flagged = 0 and messages.author_id = users.id and (
+		users.id = ? or
+		users.id in (select follower_id from followers
+								where user_id = ?))
+		order by messages.pub_date DESC limit ? 
+	`, userId, userId, 30).Scan(&tweets).Error
+
+	if err != nil {
+		return nil, err
+	}
+	addAvatarAndDates(&tweets)
+
+	return &tweets, nil
+}
+
+/*
+Adds avatar and format dates for an array reference
+*/
+func addAvatarAndDates(tweets *[]Tweet) {
+	for i, tweet := range *tweets {
+		(*tweets)[i].Gravatar_Url = gravatar_url(tweet.Email, 48)
+		(*tweets)[i].Format_Datetime = format_datetime(tweet.Pub_date)
+	}
 }
 
 func format_datetime(timestamp int) string {
