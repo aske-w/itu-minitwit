@@ -4,7 +4,7 @@
 Vagrant.configure("2") do |config|
 	config.vm.box = "digital_ocean"
 	config.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
-	config.ssh.private_key_path = '.'
+	config.ssh.private_key_path = '~/do_ssh_key'
 	#config.vm.network "private_network", type: "dhcp"
 
 	# For two way synchronization you might want to try `type: "virtualbox"`
