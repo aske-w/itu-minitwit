@@ -4,7 +4,7 @@
 Vagrant.configure("2") do |config|
 	config.vm.box = "digital_ocean"
 	config.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
-	config.ssh.private_key_path = 'minitwit_dd'
+	config.ssh.private_key_path = '.'
 	#config.vm.network "private_network", type: "dhcp"
 
 	# For two way synchronization you might want to try `type: "virtualbox"`
@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
 	
 		#config.vm.provision "file", source: "~/path/to/host/folder", destination: "$HOME/remote/newfolder"
 		server.vm.provider "digital_ocean" do |provider|
-			provider.ssh_key_name = 'do_ssh_key'
+			provider.ssh_key_name = 'minitwit_dd'
 			provider.token = ENV["DIGITAL_OCEAN_TOKEN"]
 			provider.image = 'docker-18-04'
 			provider.region = 'fra1'

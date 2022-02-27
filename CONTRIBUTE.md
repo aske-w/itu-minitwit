@@ -18,4 +18,4 @@ The contributions should include a short and concise summary and a discription -
 
 ## Who is responsible for integrating/reviewing contributions?
 
-One or two people should review pull requests on the main branch. We will set up pipelines which will test and build any updates to the production code base, and reject them if the tests or build process fails.
+One or two people should review pull requests on the development branch such that the development branch is ready to deploy. We will set up pipelines which will test and build any updates to the production code base, and reject them if the tests or build process fails.

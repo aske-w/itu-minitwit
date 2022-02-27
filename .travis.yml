@@ -3,14 +3,14 @@ dist: bionic
 
 language: go
 go:
-  - 1.17x  # any version of go
+  - "1.17"  # any version of go
 
 services:
   - docker  # required, but travis uses older version of docker :(
 
 before_install:
   # Decrypt the git_deploy_key.enc key into /tmp/git_deploy_key
-  - openssl aes-256-cbc -K $encrypted_d0a010158898_key -iv $encrypted_d0a010158898_iv -in do_ssh_key.enc -out /tmp/git_deploy_key -d
+  - openssl aes-256-cbc -K $encrypted_d0a010158898_key -iv $encrypted_d0a010158898_iv -in minitwit_dd.enc -out /tmp/git_deploy_key -d
   # Make sure only the current user can read the private key
   - chmod 600 /tmp/git_deploy_key
   # Create a script to return the passphrase environment variable to ssh-add
