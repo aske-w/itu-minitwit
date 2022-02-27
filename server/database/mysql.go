@@ -2,6 +2,7 @@ package database
 
 import (
 	"aske-w/itu-minitwit/models"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -26,8 +27,12 @@ func ConnectMySql() (*gorm.DB, error) {
 			Colorful:                  true,         // Disable color
 		},
 	)
-
-	dsn := "user:password@tcp(127.0.0.1:3306)/db?charset=utf8mb4&parseTime=True&loc=Local"
+	user := os.Getenv("MYSQL_USER")
+	password := os.Getenv("MYSQL_PASSWORD")
+	address := os.Getenv("MYSQL_ADDRESS")
+	port := os.Getenv("MYSQL_PORT")
+	db_name := os.Getenv("MYSQL_DATABASE")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, address, port, db_name)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
