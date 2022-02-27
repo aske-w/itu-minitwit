@@ -3,6 +3,7 @@ package main
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/environment"
+	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/controllers"
 	"log"
 
@@ -25,7 +26,11 @@ func main() {
 	app.Use(recover.New()) // handles panics (shows 404)
 
 	// Configure sessions manager.
-	sess := sessions.New(sessions.Config{Cookie: "itu-minitwit-cookie"})
+	sess := sessions.New(sessions.Config{
+		Cookie:                      "itu-minitwit-cookie",
+		AllowReclaim:                true,
+		DisableSubdomainPersistence: true,
+	})
 	app.Use(sess.Handler())
 
 	// Add html files
@@ -41,33 +46,33 @@ func main() {
 		ctx.View("shared/error.html")
 	})
 
-	db, err := database.ConnectSqlite()
+	db, err := database.ConnectMySql()
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
+	userService := services.NewUserService(db)
+	authService := services.NewAuthService(db)
+	timelineService := services.NewTimelineService(db)
+	messageService := services.NewMessageService(db)
 
 	// I cant figure out how to have global DI, when using MVC pattern?
 	index := mvc.New(app.Party("/"))
-	// register db in dependecy injection container
-	index.Register(db)
-
+	index.Register(timelineService)
+	index.Register(messageService)
+	index.Register(userService)
 	index.Handle(new(controllers.IndexController))
 
-	login := mvc.New(app.Party("/login"))
-	// register db in dependecy injection container
-	login.Register(db)
-	login.Handle(new(controllers.LoginController))
-
-	logout := mvc.New(app.Party("/logout"))
-	logout.Register(db)
-	logout.Handle(new(controllers.LogoutController))
-
-	signup := mvc.New(app.Party("/signup"))
-	signup.Register(db)
-	signup.Handle(new(controllers.SignupController))
+	auth := mvc.New(app.Party("/"))
+	auth.Register(userService)
+	auth.Register(authService)
+	auth.Handle(new(controllers.AuthController))
 
 	api := mvc.New(app.Party("/api"))
 	api.Register(db)
+	api.Register(timelineService)
+	api.Register(messageService)
+	api.Register(userService)
+	api.Register(authService)
 	api.Handle(new(controllers.ApiController))
 
 	app.Listen(":8080")

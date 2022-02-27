@@ -3,7 +3,7 @@
 {{ if .LoggedIn }}
     {{ if eq .Endpoint "user_timeline" }}
       <div class=followstatus>
-      {{ if eq .User.User_id  .ProfileUser.User_id }}
+      {{ if eq .User.ID  .ProfileUser.ID }}
         This is you!
       {{ else if .Followed }}
         You are currently following this user.
@@ -26,13 +26,13 @@
 <ul class="messages">
   {{range .Messages }}
   <li>
-    <img src="{{call .Gravatar_Url .Email 48 }}" alt="profile_img" />
+    <img src="{{.Gravatar_Url}}" alt="profile_img" />
     <p>
       <strong>
         <a href="/{{ .Username }} "> {{ .Username }} </a>
       </strong>
       {{.Text}}
-      <small>&mdash; {{call .Format_Datetime .Pub_date }}</small>
+      <small>&mdash; {{.Format_Datetime }}</small>
     </p>
   </li>
   {{else}}
