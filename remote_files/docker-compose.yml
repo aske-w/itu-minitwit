@@ -5,8 +5,8 @@ networks:
   app-network:
 
 #Volumes
-# volumes:
-#   db_data:
+volumes:
+  db_data:
 
 services: 
   server:
