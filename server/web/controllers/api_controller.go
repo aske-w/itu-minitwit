@@ -1,25 +1,30 @@
 package controllers
 
 import (
-	"aske-w/itu-minitwit/database"
+	"aske-w/itu-minitwit/models"
+	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/utils"
 	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/kataras/iris/v12/sessions"
-	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type ApiController struct {
 	Ctx iris.Context
 
-	DB *database.SQLite
+	TimelineService *services.TimelineService
+	MessageService  *services.MessageService
+	UserService     *services.UserService
+	AuthService     *services.AuthService
+
+	DB *gorm.DB
 	// Session, binded using dependency injection from the main.go.
 	Session *sessions.Session
 }
@@ -46,9 +51,9 @@ type FollowRequest struct {
 }
 
 type FilteredMsg struct {
-	content  string `json:"content"`
-	pub_date string `json:"pub_date"`
-	user     string `json:"user"`
+	Content  string `json:"content"`
+	Pub_date string `json:"pub_date"`
+	User     string `json:"user"`
 }
 
 type Message struct {
@@ -82,9 +87,9 @@ func getFilteredMsgs(rows *sql.Rows) FilteredMsgs {
 
 	for rows.Next() {
 		msg := &FilteredMsg{}
-		err := rows.Scan(&msg.user, &msg.content, &msg.pub_date)
+		err := rows.Scan(&msg.User, &msg.Content, &msg.Pub_date)
 		utils.CheckError(err)
-		temp := iris.Map{"user": msg.user, "content": msg.content, "pub_date": msg.pub_date}
+		temp := iris.Map{"user": msg.User, "content": msg.Content, "pub_date": msg.Pub_date}
 		filtered_msgs = append(filtered_msgs, temp)
 	}
 
@@ -106,6 +111,7 @@ func (c *ApiController) BeforeActivation(b mvc.BeforeActivation) {
 }
 
 func (c *ApiController) RegisterHandler() {
+
 	update_latest(c)
 
 	registerUser := RegisterUser{}
@@ -123,21 +129,36 @@ func (c *ApiController) RegisterHandler() {
 	} else if password == "" {
 		err = fmt.Errorf("you have to enter a password")
 	} else {
-		user, _ := utils.GetUserByUsername(username, c.DB, c.Ctx)
-		count := utils.CountEntries("user", c.DB)
-		if user.User_id != 0 && count > 0 {
+
+		exists, _ := c.UserService.CheckUsernameExists(username)
+
+		if exists {
 			err = fmt.Errorf("the username is already taken")
 		} else {
-			var byteHash []byte
-			byteHash, err = bcrypt.GenerateFromPassword([]byte(password), 10)
+			_, err := c.AuthService.CreateUser(username, email, password)
 			if err == nil {
-				_, err = c.DB.Conn.Exec(`insert into user (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash))
-				if err == nil {
-					c.Ctx.StatusCode(204)
-					return
-				}
+
+				c.Ctx.StatusCode(204)
+				return
 			}
+
 		}
+
+		// user, _ := c.UserService.FindByUsername(username)
+		// count := c.UserService.CountUsers()
+		// if user.ID != 0 && count > 0 {
+		// 	err = fmt.Errorf("the username is already taken")
+		// } else {
+		// 	var byteHash []byte
+		// 	byteHash, err = bcrypt.GenerateFromPassword([]byte(password), 10)
+		// 	if err == nil {
+		// 		err = c.DB.Exec(`insert into users (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash)).Error
+		// 		if err == nil {
+		// 			c.Ctx.StatusCode(204)
+		// 			return
+		// 		}
+		// 	}
+		// }
 	}
 	c.Ctx.StatusCode(400)
 	c.Ctx.JSON(iris.Map{"status": 400, "error_msg": err})
@@ -155,16 +176,11 @@ func (c *ApiController) MsgHandler() {
 	}
 
 	no_msg := c.Ctx.Params().GetIntDefault("no", 100)
+	msgs := []FilteredMsg{}
 
-	rows, err := c.DB.Conn.Query("SELECT user.username, message.text, message.pub_date  FROM user INNER JOIN message ON message.author_id = user.user_id AND message.flagged = 0 ORDER BY message.pub_date DESC LIMIT ?", no_msg)
-	utils.CheckError(err)
-	defer rows.Close()
-
-	msgs := getFilteredMsgs(rows)
-
-	// for msg := range msgs {
-	// 	fmt.Println("msg:" + msgs[msg].user)
-	// }
+	c.DB.Model(&models.User{}).Select("users.username as user", "messages.text as content", "messages.pub_date").Joins(
+		"INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0",
+	).Order("messages.pub_date DESC").Limit(no_msg).Scan(&msgs)
 
 	c.Ctx.JSON(msgs)
 }
@@ -177,20 +193,20 @@ func (c *ApiController) UserMsgsGetHandler(username string) {
 	}
 
 	no_msg := c.Ctx.Params().GetIntDefault("no", 100)
-	profile_user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
+	profile_user_id, _ := c.UserService.UsernameToId(username)
 
-	if err != nil {
+	if profile_user_id == -1 {
 		c.Ctx.StatusCode(404)
 		return
 	}
 
-	query := `SELECT user.username, message.text, message.pub_date FROM message, user WHERE message.flagged = 0 AND user.user_id = message.author_id AND user.user_id = ? ORDER BY message.pub_date DESC LIMIT ?`
+	msgs := []FilteredMsg{}
 
-	rows, err := c.DB.Conn.Query(query, profile_user.User_id, no_msg)
-	utils.CheckError(err)
-	defer rows.Close()
+	c.DB.Table("messages, users").Select("users.username as User", "messages.text as Content", "messages.pub_date as Pub_date").Where(
+		"messages.flagged = 0 AND users.id = messages.author_id AND users.id = ?", profile_user_id,
+	).Order("messages.pub_date DESC").Limit(no_msg).Scan(&msgs)
 
-	c.Ctx.JSON(getFilteredMsgs(rows))
+	c.Ctx.JSON(msgs)
 }
 
 func (c *ApiController) UserMsgsPostHandler(username string) {
@@ -201,27 +217,18 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 		return
 	}
 
-	user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
-	if err != nil {
+	userId, _ := c.UserService.UsernameToId(username)
+	if userId == -1 {
 		c.Ctx.StatusCode(404)
 		return
 	}
 
-	userId := user.User_id
 	msg := Message{}
 
 	readBody(c, &msg)
 	text := msg.Content
 	if text != "" {
-		_, err := c.DB.Exec(
-			c.Ctx,
-			"insert into message (author_id, text, pub_date, flagged)	values (?, ?, ?, 0)",
-			userId,
-			text,
-			time.Now().Unix(),
-		)
-
-		utils.CheckError(err)
+		c.MessageService.CreateMessage(userId, text)
 	}
 	c.Ctx.StatusCode(204)
 }
@@ -240,28 +247,9 @@ func (c *ApiController) FollowersGetHandler(username string) {
 		return
 	}
 
-	user, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
+	num_followers := c.Ctx.Params().GetIntDefault("no", 100)
 
-	if err != nil {
-		c.Ctx.StatusCode(404)
-		return
-	}
-
-	no_followers := c.Ctx.Params().GetIntDefault("no", 100)
-	rows, err := c.DB.Conn.Query("SELECT user.username FROM user INNER JOIN follower ON follower.whom_id=user.user_id WHERE follower.who_id = ? LIMIT ?", user.User_id, no_followers)
-	utils.CheckError(err)
-	defer rows.Close()
-
-	follower_names := make([]string, 0)
-
-	for rows.Next() {
-		var follower_name string
-		err := rows.Scan(&follower_name)
-
-		utils.CheckError(err)
-
-		follower_names = append(follower_names, follower_name)
-	}
+	follower_names := c.UserService.GetFollowersByUsername(username, num_followers)
 
 	c.Ctx.StatusCode(200)
 	c.Ctx.JSON(iris.Map{"follows": follower_names})
@@ -276,48 +264,18 @@ func (c *ApiController) FollowersPostHandler(username string) {
 	body := FollowRequest{}
 	readBody(c, &body)
 
-	myUser, err := utils.GetUserByUsername(username, c.DB, c.Ctx)
-
-	if err != nil {
-		c.Ctx.StatusCode(404)
-		return
-	}
+	userId, _ := c.UserService.UsernameToId(username)
 
 	if body.Follow != nil && body.Unfollow == nil {
-
-		whomUser, err := utils.GetUserByUsername(*body.Follow, c.DB, c.Ctx)
-
-		if err != nil {
-			c.Ctx.StatusCode(404)
-			return
-		}
-
-		c.DB.Exec(
-			c.Ctx,
-			"insert into follower (who_id, whom_id) values (?, ?)",
-			myUser.User_id, whomUser.User_id,
-		)
-
-		c.Ctx.StatusCode(204)
-		return
+		// follow
+		followerId, _ := c.UserService.UsernameToId(*body.Follow)
+		c.UserService.FollowUser(userId, followerId)
 	} else if body.Follow == nil && body.Unfollow != nil {
-
-		whomUser, err := utils.GetUserByUsername(*body.Unfollow, c.DB, c.Ctx)
-
-		if err != nil {
-			c.Ctx.StatusCode(404)
-			return
-		}
-
-		c.DB.Exec(
-			c.Ctx,
-			"delete from follower where who_id=? and whom_id=?",
-			myUser.User_id, whomUser.User_id,
-		)
-
-		c.Ctx.StatusCode(204)
-	} else {
-		panic("Something is very wrong")
+		// un follow
+		followerId, _ := c.UserService.UsernameToId(*body.Unfollow)
+		c.UserService.FollowUser(userId, followerId)
 	}
+
+	c.Ctx.StatusCode(204)
 
 }

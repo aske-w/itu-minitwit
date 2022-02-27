@@ -1,1 +1,5 @@
 python_implementation
+python_api_tests
+.vagrant
+Vagrantfile
+remote_files

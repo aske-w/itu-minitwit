@@ -78,3 +78,9 @@ run command in vagrant ```tail -f -n100 out.log```
 
 ## Creating tables in an empty db.db
 Run the command ```cat schema.sql | sqlite3 db.db``` in bash
+
+## Encrypting keys in travis
+run cmd ```travis encrypt-file minitwit_dd --com -r aske-w/itu-minitwit```
+
+## Accessing the DB via MySQL CLI inside container
+Run command ```mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE```
