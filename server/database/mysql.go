@@ -6,15 +6,16 @@ import (
 	"os"
 	"time"
 
-	"gorm.io/driver/sqlite" // Sqlite driver based on GGO
-	"gorm.io/gorm/logger"
+	// Sqlite driver based on GGO
 
 	// "github.com/glebarez/sqlite" // Pure go SQLite driver, checkout https://github.com/glebarez/sqlite for details
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // github.com/mattn/go-sqlite3
-func ConnectSqlite() (*gorm.DB, error) {
+func ConnectMySql() (*gorm.DB, error) {
 
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -25,7 +26,10 @@ func ConnectSqlite() (*gorm.DB, error) {
 			Colorful:                  true,        // Disable color
 		},
 	)
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{
+
+	dsn := "user:password@tcp(127.0.0.1:3307)/db?charset=utf8mb4&parseTime=True&loc=Local"
+
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})
 

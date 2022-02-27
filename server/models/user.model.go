@@ -4,8 +4,8 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
-	ID        uint `gorm:"primaryKey"`
-	Username  string
+	ID        uint   `gorm:"primaryKey"`
+	Username  string `gorm:"index"`
 	Email     string
 	Pw_Hash   string
 	Followers []User `gorm:"many2many:followers"`

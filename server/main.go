@@ -46,7 +46,7 @@ func main() {
 		ctx.View("shared/error.html")
 	})
 
-	db, err := database.ConnectSqlite()
+	db, err := database.ConnectMySql()
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}

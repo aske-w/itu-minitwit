@@ -17,8 +17,10 @@ func NewUserService(db *gorm.DB) *UserService {
 
 func (s *UserService) GetById(userId int) (*models.User, error) {
 
-	user := &models.User{}
-	err := s.DB.First(&user, userId).Error
+	user := &models.User{
+		ID: uint(userId),
+	}
+	err := s.DB.First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	} else if err != nil {
