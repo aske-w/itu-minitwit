@@ -27,7 +27,7 @@ func ConnectMySql() (*gorm.DB, error) {
 		},
 	)
 
-	dsn := "user:password@tcp(127.0.0.1:3307)/db?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "user:password@tcp(127.0.0.1:3306)/db?charset=utf8mb4&parseTime=True&loc=Local"
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
