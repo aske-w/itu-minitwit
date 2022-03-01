@@ -143,7 +143,7 @@ func (c *ApiController) LatestHandler() {
 	var latest uint
 	c.DB.Model(&models.Latest{
 		ID: 0,
-	}).Limit(1).Scan(&latest)
+	}).Select("latest").Limit(1).Scan(&latest)
 	c.Ctx.JSON(iris.Map{"latest": latest})
 }
 
