@@ -52,6 +52,13 @@ jobs:
 
           script: |
             cd /vagrant
+
+            export MYSQL_USER=$MYSQL_USER
+            export MYSQL_DATABASE=$MYSQL_DATABASE
+            export MYSQL_PASSWORD=$MYSQL_PASSWORD
+            export MYSQL_ADDRESS=$MYSQL_ADDRESS
+            export MYSQL_PORT=$MYSQL_PORT
+
             docker-compose pull
             docker-compose up -d
   

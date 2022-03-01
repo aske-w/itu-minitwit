@@ -45,6 +45,14 @@ services:
     # MYSQL_ADDRESS=host.docker.internal
     # # 127.0.0.1 for local
     # MYSQL_PORT=3306
+    build: 
+      context: .
+      args:  
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_DATABASE=${MYSQL_DATABASE}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - MYSQL_ADDRESS=${MYSQL_ADDRESS}
+        - MYSQL_PORT=${MYSQL_PORT}
     environment:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
