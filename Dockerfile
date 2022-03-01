@@ -15,4 +15,4 @@ WORKDIR /app
 
 # Build the project and run it
 RUN go build -o main .
-CMD /wait && /app/main
+CMD /app/main

@@ -34,37 +34,6 @@ Vagrant.configure("2") do |config|
 
 			echo -e "\nOpening port for minitwit ...\n"
 			echo ". $HOME/.bashrc" >> $HOME/.bash_profile
-
-			# echo -e "\nConfiguring credentials as environment variables...\n"
-			# echo "export DOCKER_USERNAME='${ENV["DOCKERHUB_USERNAME"]}'" >> $HOME/.bash_profile
-			# echo "export DOCKER_PASSWORD='${ENV["DOCKERHUB_PASSWORD"]}'" >> $HOME/.bash_profile
-			# echo "export DIGITAL_OCEAN_TOKEN='${ENV["DIGITAL_OCEAN_TOKEN"]}'" >> $HOME/.bash_profile
-			# source $HOME/.bash_profile
-			# echo -e "\nVagrant setup done ..."
-			# echo -e "minitwit will later be accessible at http://$(hostname -I | awk '{print $1}'):5000"
-			# echo -e "The mysql database needs a minute to initialize, if the landing page is stack-trace ..."
-			# cp -r /vagrant/* $HOME
-
-			# export THIS_IP=`hostname -I | cut -d" " -f1`
-			
-			# # stops the current running process
-			# if [[ -e save_pid.txt ]]; then
-			#   PID=`cat save_pid.txt`
-				
-			#   # If the process is running - kill it
-			#   echo "Killing old running process $PID"
-			#   kill -0 $PID
-
-			#   rm save_pid.txt  
-			# fi
-				
-			# # build executable
-			# go build main.go
-			# # run in background, while logging to out.log
-			# nohup ./main > out.log 2>&1 & echo $! > save_pid.txt 
-			# # "dollarsign exclamation" is PID of last program (./main)
-			# echo "http://${THIS_IP}:8080"
-				
 		SHELL
 	end
 	

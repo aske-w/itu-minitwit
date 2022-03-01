@@ -50,7 +50,7 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ADDRESS=${MYSQL_ADDRESS}
-      - MYSQL_PORT=${MYSQL_POST}
+      - MYSQL_PORT=${MYSQL_PORT}
     ports:
       - '8080:8080' # docker port : localhost port
     # depends_on:
