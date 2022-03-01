@@ -18,7 +18,7 @@ func main() {
 
 	app := iris.New()
 	// app.Logger().SetLevel("debug") // more logging
-
+	app.Favicon("./web/public/favicon.ico")
 	// Load env's
 	environment.InitEnv()
 
