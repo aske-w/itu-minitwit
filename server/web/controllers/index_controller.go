@@ -190,3 +190,15 @@ func (c *IndexController) getUser() *models.User {
 	utils.CheckError(err)
 	return user
 }
+
+// https://github.com/kataras/iris/issues/1704#issuecomment-761177806
+// fix add message error
+func (c *IndexController) HandleError(ctx iris.Context, err error) {
+	if iris.IsErrPath(err) {
+		// to ignore any "schema: invalid path" you can check the error type
+		// and don't stop the execution.
+		return // continue.
+	}
+
+	ctx.StopExecution()
+}
