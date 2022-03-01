@@ -3,6 +3,7 @@ package main
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/environment"
+	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/controllers"
 	"log"
@@ -66,6 +67,12 @@ func main() {
 	auth.Register(userService)
 	auth.Register(authService)
 	auth.Handle(new(controllers.AuthController))
+
+	// make sure the latest row is in the database
+	db.FirstOrCreate(&models.Latest{
+		// id is always 0
+		ID: 0,
+	})
 
 	api := mvc.New(app.Party("/api"))
 	api.Register(db)
