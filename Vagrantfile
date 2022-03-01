@@ -35,6 +35,16 @@ Vagrant.configure("2") do |config|
 			echo -e "\nOpening port for minitwit ...\n"
 			echo ". $HOME/.bashrc" >> $HOME/.bash_profile
 
+			# echo -e "\nConfiguring credentials as environment variables...\n"
+			# echo "export DOCKER_USERNAME='${ENV["DOCKERHUB_USERNAME"]}'" >> $HOME/.bash_profile
+			# echo "export DOCKER_PASSWORD='${ENV["DOCKERHUB_PASSWORD"]}'" >> $HOME/.bash_profile
+			# echo "export DIGITAL_OCEAN_TOKEN='${ENV["DIGITAL_OCEAN_TOKEN"]}'" >> $HOME/.bash_profile
+			# source $HOME/.bash_profile
+			# echo -e "\nVagrant setup done ..."
+			# echo -e "minitwit will later be accessible at http://$(hostname -I | awk '{print $1}'):5000"
+			# echo -e "The mysql database needs a minute to initialize, if the landing page is stack-trace ..."
+			# cp -r /vagrant/* $HOME
+
 			# export THIS_IP=`hostname -I | cut -d" " -f1`
 			
 			# # stops the current running process

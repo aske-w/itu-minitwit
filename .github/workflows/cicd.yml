@@ -37,17 +37,18 @@ jobs:
     steps:
       - name: Deploy to Digital Ocean droplet via SSH action
         uses: appleboy/ssh-action@v0.1.4
-        # env:
-        #   MYSQL_DATABASE: "BAR"
-        #   MYSQL_USER: ""
-        #   MYSQL_PASSWORD: ""
-        #   MYSQL_ROOT_PASSWORD: ""
+        env:
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_ADDRESS: ${{ secrets.MYSQL_ADDRESS }}
+          MYSQL_PORT: 25060
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           port: 22
-          # envs: MYSQL_DATABASE,MYSQL_USER,
+          envs: MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT
 
           script: |
             cd /vagrant

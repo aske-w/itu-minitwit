@@ -39,8 +39,18 @@ services:
     # environment:
     #   WAIT_HOSTS: db:3306
     #   WAIT_LOGGER_LEVEL: debug
-    # env_file:
-    #   - web.env
+    # MYSQL_USER=minitwit
+    # MYSQL_PASSWORD=c3RyaW5nZ2VuZXJhdG9y
+    # MYSQL_DATABASE=db
+    # MYSQL_ADDRESS=host.docker.internal
+    # # 127.0.0.1 for local
+    # MYSQL_PORT=3306
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ADDRESS=${MYSQL_ADDRESS}
+      - MYSQL_PORT=${MYSQL_POST}
     ports:
       - '8080:8080' # docker port : localhost port
     # depends_on:
