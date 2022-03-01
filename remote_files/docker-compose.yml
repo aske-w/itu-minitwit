@@ -6,7 +6,7 @@ networks:
    
 services:
   server:
-    image: christiangerdes/minitwitimage
+    image: $/minitwitimage
     container_name: minitwit
 
     build: 
