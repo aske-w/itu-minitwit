@@ -23,8 +23,10 @@ jobs:
         with:
           go-version: '1.17'
 
-      - name: Build and test
-        run: |
-          cd server
-          go build -v -o main .
-          go test -v
+      - name: Build program
+        working-directory: ./server
+        run: go build -v -o main .
+
+      - name: Run tests
+        working-directory: ./server
+        run: go test -v
