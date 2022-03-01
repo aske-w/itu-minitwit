@@ -3,11 +3,10 @@ package controllers
 import (
 	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/services"
-	"aske-w/itu-minitwit/web/utils"
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/kataras/iris/v12"
@@ -29,15 +28,20 @@ type ApiController struct {
 	Session *sessions.Session
 }
 
-var LATEST = 0
-
-func update_latest(c *ApiController) int {
-	urlParams := c.Ctx.Params()
-	tryLatest := urlParams.GetIntDefault("latest", -1)
-	if tryLatest != -1 {
-		LATEST = tryLatest
+func update_latest(c *ApiController) {
+	urlParams := c.Ctx.URLParams()
+	paramLatest := urlParams["latest"]
+	tryLatest, err := strconv.Atoi(paramLatest)
+	if err != nil {
+		tryLatest = -1
 	}
-	return LATEST
+	if tryLatest != -1 {
+		fmt.Println("New latest", paramLatest)
+		c.DB.Find(&models.Latest{
+			// id is always 0
+			ID: 0,
+		}).Update("latest", paramLatest)
+	}
 }
 
 type MyResponse struct {
@@ -80,20 +84,6 @@ func not_req_from_simulator(ctx iris.Context) bool {
 
 	return true
 
-}
-
-func getFilteredMsgs(rows *sql.Rows) FilteredMsgs {
-	filtered_msgs := make(FilteredMsgs, 0)
-
-	for rows.Next() {
-		msg := &FilteredMsg{}
-		err := rows.Scan(&msg.User, &msg.Content, &msg.Pub_date)
-		utils.CheckError(err)
-		temp := iris.Map{"user": msg.User, "content": msg.Content, "pub_date": msg.Pub_date}
-		filtered_msgs = append(filtered_msgs, temp)
-	}
-
-	return filtered_msgs
 }
 
 func (c *ApiController) BeforeActivation(b mvc.BeforeActivation) {
@@ -144,28 +134,17 @@ func (c *ApiController) RegisterHandler() {
 
 		}
 
-		// user, _ := c.UserService.FindByUsername(username)
-		// count := c.UserService.CountUsers()
-		// if user.ID != 0 && count > 0 {
-		// 	err = fmt.Errorf("the username is already taken")
-		// } else {
-		// 	var byteHash []byte
-		// 	byteHash, err = bcrypt.GenerateFromPassword([]byte(password), 10)
-		// 	if err == nil {
-		// 		err = c.DB.Exec(`insert into users (username, email, pw_hash) values (?,?,?)`, username, email, string(byteHash)).Error
-		// 		if err == nil {
-		// 			c.Ctx.StatusCode(204)
-		// 			return
-		// 		}
-		// 	}
-		// }
 	}
 	c.Ctx.StatusCode(400)
 	c.Ctx.JSON(iris.Map{"status": 400, "error_msg": err})
 }
 
 func (c *ApiController) LatestHandler() {
-	c.Ctx.JSON(iris.Map{"latest": LATEST})
+	var latest uint
+	c.DB.Model(&models.Latest{
+		ID: 0,
+	}).Limit(1).Scan(&latest)
+	c.Ctx.JSON(iris.Map{"latest": latest})
 }
 
 func (c *ApiController) MsgHandler() {

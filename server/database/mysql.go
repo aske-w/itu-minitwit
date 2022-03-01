@@ -46,6 +46,7 @@ func ConnectMySql() (*gorm.DB, error) {
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Message{})
+	db.AutoMigrate(&models.Latest{})
 
 	return db, nil
 

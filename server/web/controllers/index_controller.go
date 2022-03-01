@@ -70,7 +70,6 @@ type AddMessageForm struct {
 }
 
 func (c *IndexController) AddMessageHandler() mvc.Result {
-	fmt.Println("add message handler")
 	user := c.getUser()
 	if user == nil {
 		fmt.Println("user nil")
@@ -79,7 +78,6 @@ func (c *IndexController) AddMessageHandler() mvc.Result {
 
 	var form AddMessageForm
 	c.Ctx.ReadForm(&form)
-	fmt.Println("text", form)
 	if form.Text != "" {
 		c.MessageService.CreateMessage(int(user.ID), form.Text)
 	}
