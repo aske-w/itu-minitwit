@@ -6,17 +6,9 @@ networks:
    
 services:
   server:
-    image: $/minitwitimage
+    image: ${DOCKER_USERNAME}/minitwitimage
     container_name: minitwit
 
-    build: 
-      context: .
-      args:  
-        - MYSQL_USER=${MYSQL_USER}
-        - MYSQL_DATABASE=${MYSQL_DATABASE}
-        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-        - MYSQL_ADDRESS=${MYSQL_ADDRESS}
-        - MYSQL_PORT=${MYSQL_PORT}
     environment:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
