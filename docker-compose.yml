@@ -30,21 +30,21 @@ services:
     # volumes:
     # - ./db/init/:/docker-entrypoint-initdb.d/
     # - ./db/config/:/etc/
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
-  server:
-    # image: ${DOCKER_USERNAME}/minitwitimage
-    build: .
-    container_name: minitwit
-    environment:
-      WAIT_HOSTS: db:3306
-      WAIT_LOGGER_LEVEL: debug
-    ports:
-      - '8081:8080' # docker port : localhost port
-    depends_on:
-      - db
-    links:
-      - db
-    networks:
-      - app-network
+  # server:
+  #   # image: ${DOCKER_USERNAME}/minitwitimage
+  #   build: .
+  #   container_name: minitwit
+  #   environment:
+  #     WAIT_HOSTS: db:3306
+  #     WAIT_LOGGER_LEVEL: debug
+  #   ports:
+  #     - '8081:8080' # docker port : localhost port
+  #   depends_on:
+  #     - db
+  #   links:
+  #     - db
+  #   networks:
+  #     - app-network

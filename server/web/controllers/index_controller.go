@@ -4,6 +4,7 @@ import (
 	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/utils"
+	"fmt"
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
@@ -25,10 +26,10 @@ type IndexController struct {
 
 func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 
+	b.Handle("POST", "/add_message", "AddMessageHandler")
 	b.Handle("GET", "/{username:string}", "UserTimelineHandler")
 	b.Handle("GET", "/{username:string}/follow", "FollowHandler")
 	b.Handle("GET", "/{username:string}/unfollow", "UnfollowHandler")
-	b.Handle("POST", "/add_message", "AddMessageHandler")
 }
 
 func (c *IndexController) UnfollowHandler(username string) mvc.View {
@@ -64,15 +65,23 @@ func (c *IndexController) FollowHandler(username string) mvc.View {
 	return mvc.View{}
 }
 
+type AddMessageForm struct {
+	Text string `form:"text"` // or just "colors".
+}
+
 func (c *IndexController) AddMessageHandler() mvc.Result {
+	fmt.Println("add message handler")
 	user := c.getUser()
 	if user == nil {
+		fmt.Println("user nil")
 		return c.errorPage("You need to be logged in")
 	}
 
-	text := c.Ctx.FormValue("text")
-	if text != "" {
-		c.MessageService.CreateMessage(int(user.ID), text)
+	var form AddMessageForm
+	c.Ctx.ReadForm(&form)
+	fmt.Println("text", form)
+	if form.Text != "" {
+		c.MessageService.CreateMessage(int(user.ID), form.Text)
 	}
 	c.Ctx.Redirect("/")
 	return mvc.View{}
