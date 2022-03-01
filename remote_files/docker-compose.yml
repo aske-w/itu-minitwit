@@ -1,50 +1,14 @@
 version: '3.9'
 
-#Docker Networks
+
 networks:
   app-network:
-
-#Volumes
-# volumes:
-#   db_data:
    
-
 services:
-  # db:
-  #   image: mysql:8
-  #   platform: linux/x86_64 # Necessary for running on M1 Macs
-  #   container_name: db
-  #   restart: always
-  #   #command: --default-authentication-plugin=mysql_native_password
-  #   command: --bind-address=0.0.0.0
-  #   environment:
-  #     - MYSQL_DATABASE=${MYSQL_DATABASE}
-  #     # So you don't have to use root, but you can if you like
-  #     - MYSQL_USER=${MYSQL_USER}
-  #     # You can use whatever password you like
-  #     - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-  #     # Password for root access
-  #     - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-  #     # - MYSQL_ROOT_HOST=%
-  #   ports:
-  #     - 3306:3306
-  #   volumes:
-  #     - db_data:/var/lib/mysql
-  #   networks:
-  #     - app-network
-
   server:
     image: christiangerdes/minitwitimage
     container_name: minitwit
-    # environment:
-    #   WAIT_HOSTS: db:3306
-    #   WAIT_LOGGER_LEVEL: debug
-    # MYSQL_USER=minitwit
-    # MYSQL_PASSWORD=c3RyaW5nZ2VuZXJhdG9y
-    # MYSQL_DATABASE=db
-    # MYSQL_ADDRESS=host.docker.internal
-    # # 127.0.0.1 for local
-    # MYSQL_PORT=3306
+
     build: 
       context: .
       args:  
@@ -61,9 +25,5 @@ services:
       - MYSQL_PORT=${MYSQL_PORT}
     ports:
       - '8080:8080' # docker port : localhost port
-    # depends_on:
-    #   - db
-    # links:
-    #   - db
     networks:
       - app-network
