@@ -27,5 +27,5 @@ jobs:
 
       - name: Build and push docker image
         run: |
-          - docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest . -f Dockerfile
-          - docker push ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
+          - docker build -t christiangerdes/minitwitimage:latest . -f Dockerfile
+          - docker push christiangerdes/minitwitimage:latest
