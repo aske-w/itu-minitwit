@@ -101,11 +101,9 @@ func (c *ApiController) BeforeActivation(b mvc.BeforeActivation) {
 }
 
 func (c *ApiController) RegisterHandler() {
-
 	update_latest(c)
-
 	registerUser := RegisterUser{}
-	readBody(c, &registerUser)
+	c.Ctx.ReadJSON(&registerUser)
 	username := registerUser.Username
 	email := registerUser.Email
 	password := registerUser.Password
@@ -119,13 +117,12 @@ func (c *ApiController) RegisterHandler() {
 	} else if password == "" {
 		err = fmt.Errorf("you have to enter a password")
 	} else {
-
 		exists, _ := c.UserService.CheckUsernameExists(username)
 
 		if exists {
 			err = fmt.Errorf("the username is already taken")
 		} else {
-			_, err := c.AuthService.CreateUser(username, email, password)
+			_, err = c.AuthService.CreateUser(username, email, password)
 			if err == nil {
 
 				c.Ctx.StatusCode(204)
@@ -136,7 +133,7 @@ func (c *ApiController) RegisterHandler() {
 
 	}
 	c.Ctx.StatusCode(400)
-	c.Ctx.JSON(iris.Map{"status": 400, "error_msg": err})
+	c.Ctx.JSON(iris.Map{"status": 400, "error_msg": err.Error()})
 }
 
 func (c *ApiController) LatestHandler() {
