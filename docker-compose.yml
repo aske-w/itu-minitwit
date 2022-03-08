@@ -1,39 +1,23 @@
 version: '3.9'
 
-#Docker Networks
+services:
+  db:
+    image: mysql:8.0.26
+    platform: linux/x86_64 # Necessary for running on M1 Macs
+    container_name: database
+    restart: always
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?err}
+    ports:
+      - 3306:3306
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
 networks:
   app-network:
 
-#Volumes
-# volumes:
-#   db_data:
-
-services:
-  # db:
-  #   image: mysql:8.0.26
-  #   platform: linux/x86_64 # Necessary for running on M1 Macs
-  #   container_name: database
-  #   restart: always
-  #   #command: --default-authentication-plugin=mysql_native_password
-  #   # command: --bind-address=0.0.0.0
-  #   environment:
-  #     - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
-  #     - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?err}
-  #   ports:
-  #     - 3306:3306
-  #   # volumes:
-  #   # - ./db/init/:/docker-entrypoint-initdb.d/
-  #   # - ./db/config/:/etc/
-  #   networks:
-  #     - app-network
-
-  server:
-    # image: ${DOCKER_USERNAME}/minitwitimage
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: minitwit
-    ports:
-      - 8080:8080
-    networks:
-      - app-network
+volumes:
+  db_data:
