@@ -4,7 +4,7 @@ services:
   db:
     image: mysql:8.0.26
     platform: linux/x86_64 # Necessary for running on M1 Macs
-    container_name: database
+    container_name: db
     restart: always
     environment:
       - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
@@ -13,8 +13,8 @@ services:
       - 3306:3306
     volumes:
       - db_data:/var/lib/mysql
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
   grafana:
     image: grafana/grafana-oss:8.4.3
@@ -26,31 +26,34 @@ services:
 
   prometheus:
       image: prom/prometheus:v2.24.0
+      user: root
       volumes:
-        - ./prometheus/:/etc/prometheus/
-        - prometheus_data:/prometheus
+        - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       command:
         - '--config.file=/etc/prometheus/prometheus.yml'
-        - '--storage.tsdb.path=/prometheus'
-        - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-        - '--web.console.templates=/usr/share/prometheus/consoles'
       ports:
         - 9090:9090
-      restart: always
+      depends_on:
+        - cadvisor
 
   cadvisor:
-      image: google/cadvisor:v0.33.0
-      volumes: 
+      image: google/cadvisor:v0.24.1
+      privileged: true
+      container_name: cadvisor
+      volumes:
         - /:/rootfs:ro
-        - /var/run:/var/run:ro
+        - /var/run/docker.sock:/var/run/docker.sock:rw
         - /sys:/sys:ro
         - /var/lib/docker/:/var/lib/docker:ro
-        - /dev/disk/:/dev/disk:ro
-      # ports: #Do not expose ports to outside world, use docker network instead
-      #   - 8080:8080
-      networks:
-        - app-network
-      container_name: cadvisor
+            # - /:/rootfs:ro
+            # - /var/run:/var/run:ro
+            # - /sys:/sys:ro
+            # - /var/lib/docker/:/var/lib/docker:ro
+            # - /dev/disk:/dev/disk/:ro
+      ports:
+        - '8082:8080'
+      depends_on:
+        - db
 
   # server:
   #   # image: ${DOCKER_USERNAME}/minitwitimage
@@ -68,8 +71,6 @@ services:
   #   networks:
   #     - app-network
 
-networks:
-    app-network:
 volumes:
   grafana-storage:
   prometheus_data:
