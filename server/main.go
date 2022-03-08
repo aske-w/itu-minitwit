@@ -70,8 +70,7 @@ func main() {
 	auth.Handle(new(controllers.AuthController))
 
 	// Setup prometheus for monetering
-	metrics := mvc.New(app.Party("/metrics"))
-	metrics.Handle(promhttp.Handler)
+	app.Get("/metrics", iris.FromStd(promhttp.Handler()))
 
 	// make sure the latest row is in the database
 	db.FirstOrCreate(&models.Latest{
@@ -89,3 +88,24 @@ func main() {
 
 	app.Listen(":8080")
 }
+
+// var totalRequests = prometheus.NewCounterVec(
+// 	prometheus.CounterOpts{
+// 		Name: "http_requests_total",
+// 		Help: "Number of get requests.",
+// 	},
+// 	[]string{"path"},
+// )
+
+// func prometheusMiddleware(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		rw := NewResponseWriter(w)
+// 		next.ServeHTTP(rw, r)
+
+// 		totalRequests.WithLabelValues(path).Inc()
+// 	})
+// }
+
+// func initPrometheus() {
+// 	prometheus.Register(totalRequests)
+// }
