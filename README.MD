@@ -84,3 +84,13 @@ run cmd ```travis encrypt-file minitwit_dd --com -r aske-w/itu-minitwit```
 
 ## Accessing the DB via MySQL CLI inside container
 Run command ```mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE```
+
+## Monitoring
+docker-compose -d will run prometheus and grafana. If you are running the go server locally, configure the filed ```targets``` in the file ```prometheues/prometheues.yml``` to 
+
+```yaml
+ - targets:
+        - host.docker.internal:8080
+```
+else specify localhost://8080.
+In order to add data source in Grafana, in Grafana navigate to configuration/Data sources and press "Add Data Source". Select prometheues and set the ```url``` to the host of promeheues (http://localhost:9090). Then it's possible to create Dashboard with the different metrics. 
