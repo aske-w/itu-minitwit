@@ -55,21 +55,6 @@ services:
         - 9090:9090
       restart: always
 
-  cadvisor:
-    image: google/cadvisor:v0.33.0
-    volumes: 
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    # ports: #Do not expose ports to outside world, use docker network instead
-    #   - 8080:8080
-    networks:
-      - app-network
-    container_name: cadvisor
-      
-
 volumes:
   grafana-storage:
   prometheus_data:
