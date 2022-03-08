@@ -3,6 +3,7 @@ package main
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/environment"
+	"aske-w/itu-minitwit/middleware"
 	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/controllers"
@@ -26,6 +27,9 @@ func main() {
 
 	app.Use(logger.New())  // logs request
 	app.Use(recover.New()) // handles panics (shows 404)
+
+	// Register middleware
+	app.Use(middleware.InitMiddleware)
 
 	// Configure sessions manager.
 	sess := sessions.New(sessions.Config{
@@ -88,24 +92,3 @@ func main() {
 
 	app.Listen(":8080")
 }
-
-// var totalRequests = prometheus.NewCounterVec(
-// 	prometheus.CounterOpts{
-// 		Name: "http_requests_total",
-// 		Help: "Number of get requests.",
-// 	},
-// 	[]string{"path"},
-// )
-
-// func prometheusMiddleware(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		rw := NewResponseWriter(w)
-// 		next.ServeHTTP(rw, r)
-
-// 		totalRequests.WithLabelValues(path).Inc()
-// 	})
-// }
-
-// func initPrometheus() {
-// 	prometheus.Register(totalRequests)
-// }
