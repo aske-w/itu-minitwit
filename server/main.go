@@ -73,7 +73,6 @@ func main() {
 		// id is always 0
 		ID: 0,
 	})
-
 	api := mvc.New(app.Party("/api"))
 	api.Register(db)
 	api.Register(timelineService)
@@ -82,5 +81,5 @@ func main() {
 	api.Register(authService)
 	api.Handle(new(controllers.ApiController))
 
-	app.Listen(":8080")
+	app.Listen(":8080", iris.WithOptimizations)
 }
