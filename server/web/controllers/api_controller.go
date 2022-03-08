@@ -101,7 +101,7 @@ func (c *ApiController) BeforeActivation(b mvc.BeforeActivation) {
 }
 
 func (c *ApiController) RegisterHandler() {
-	update_latest(c)
+
 	registerUser := RegisterUser{}
 	c.Ctx.ReadJSON(&registerUser)
 	username := registerUser.Username
@@ -122,7 +122,7 @@ func (c *ApiController) RegisterHandler() {
 		if exists {
 			err = fmt.Errorf("the username is already taken")
 		} else {
-			_, err = c.AuthService.CreateUser(username, email, password)
+			err = c.AuthService.CreateUser(username, email, password)
 			if err == nil {
 				update_latest(c)
 				c.Ctx.StatusCode(204)
