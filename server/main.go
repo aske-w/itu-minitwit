@@ -13,6 +13,7 @@ import (
 	"github.com/kataras/iris/v12/middleware/recover"
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/kataras/iris/v12/sessions"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -67,6 +68,10 @@ func main() {
 	auth.Register(userService)
 	auth.Register(authService)
 	auth.Handle(new(controllers.AuthController))
+
+	// Setup prometheus for monetering
+	metrics := mvc.New(app.Party("/metrics"))
+	metrics.Handle(promhttp.Handler)
 
 	// make sure the latest row is in the database
 	db.FirstOrCreate(&models.Latest{
