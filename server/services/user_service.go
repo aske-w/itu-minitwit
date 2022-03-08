@@ -30,13 +30,12 @@ func (s *UserService) GetById(userId int) (*models.User, error) {
 }
 func (s *UserService) UsernameToId(username string) (int, error) {
 
-	var id int
+	id := -1
 	err := s.DB.Table("users").Where("username = ?", username).Select("id").Scan(&id).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return -1, nil
-	} else if err != nil {
-		return -1, err
+	if err != nil {
+		return id, err
 	}
+
 	return id, nil
 }
 
