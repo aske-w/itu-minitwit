@@ -58,7 +58,7 @@ func (c *AuthController) PostSignup() mvc.Result {
 		if user != nil {
 			error = "The username is already taken"
 		} else {
-			_, err := c.AuthService.CreateUser(username, email, password)
+			err := c.AuthService.CreateUser(username, email, password)
 			if err != nil {
 				error = err.Error()
 			} else {
