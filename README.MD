@@ -94,3 +94,6 @@ docker-compose -d will run prometheus and grafana. If you are running the go ser
 ```
 else specify localhost://8080.
 In order to add data source in Grafana, in Grafana navigate to configuration/Data sources and press "Add Data Source". Select prometheues and set the ```url``` to the host of promeheues (http://localhost:9090). Then it's possible to create Dashboard with the different metrics. 
+
+### Creating Dashboard in Grafana
+Once promotheues has been added as a data source we can under dashboard/new ```add a new panel```. We can for example monitor the different container memory usage in bytes by this query ```sum(container_memory_usage_bytes{name=~".+"}) by(name)```. It only shows containers with a name. 
