@@ -82,4 +82,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	gorm.io/driver/sqlite v1.3.1 // indirect
 	gorm.io/gorm v1.23.1 // indirect
+	gorm.io/plugin/prometheus v0.0.0-20220223061010-d8bdd50fdfc7 // indirect
 )
