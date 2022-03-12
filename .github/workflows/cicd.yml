@@ -58,6 +58,8 @@ jobs:
             export MYSQL_PASSWORD=$MYSQL_PASSWORD
             export MYSQL_ADDRESS=$MYSQL_ADDRESS
             export MYSQL_PORT=$MYSQL_PORT
+            export GRAFANA_ADMIN_USERNAME=$GRAFANA_ADMIN_USERNAME
+            export GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
 
             docker-compose pull
             docker-compose up -d
