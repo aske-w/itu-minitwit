@@ -6,4 +6,4 @@ __pycache__
 .env
 minitwit_dd.pub
 minitwit_dd
-
+config.monitoring
