@@ -1,0 +1,19 @@
+global:
+  scrape_interval:     60s
+  evaluation_interval: 60s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: webserver 
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+        - minitwit:8080
+
+  - job_name: cadvisor
+    static_configs:
+      - targets:
+        - cadvisor:8080

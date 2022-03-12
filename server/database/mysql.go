@@ -13,6 +13,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"gorm.io/plugin/prometheus"
 )
 
 // github.com/mattn/go-sqlite3
@@ -38,6 +39,8 @@ func ConnectMySql() (*gorm.DB, error) {
 		Logger: newLogger,
 	})
 
+	db.Use(prometheus.New(prometheusConfiguration(db_name)))
+
 	// conn, err := sql.Open("sqlite3", "./db.db")
 
 	if err != nil {
@@ -50,4 +53,17 @@ func ConnectMySql() (*gorm.DB, error) {
 
 	return db, nil
 
+}
+
+func prometheusConfiguration(dbName string) prometheus.Config {
+	return prometheus.Config{
+		DBName:          dbName,
+		RefreshInterval: 60,
+		HTTPServerPort:  8080, // Use the port as the Iris server
+		MetricsCollector: []prometheus.MetricsCollector{
+			&prometheus.MySQL{
+				VariableNames: []string{"Threads_running", "Slow_queries", "Uptime"},
+			},
+		}, // user defined metrics
+	}
 }
