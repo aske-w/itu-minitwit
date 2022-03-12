@@ -102,10 +102,8 @@ func (c *ApiController) BeforeActivation(b mvc.BeforeActivation) {
 
 func (c *ApiController) RegisterHandler() {
 
-	update_latest(c)
-
 	registerUser := RegisterUser{}
-	readBody(c, &registerUser)
+	c.Ctx.ReadJSON(&registerUser)
 	username := registerUser.Username
 	email := registerUser.Email
 	password := registerUser.Password
@@ -119,15 +117,14 @@ func (c *ApiController) RegisterHandler() {
 	} else if password == "" {
 		err = fmt.Errorf("you have to enter a password")
 	} else {
-
 		exists, _ := c.UserService.CheckUsernameExists(username)
 
 		if exists {
 			err = fmt.Errorf("the username is already taken")
 		} else {
-			_, err := c.AuthService.CreateUser(username, email, password)
+			err = c.AuthService.CreateUser(username, email, password)
 			if err == nil {
-
+				update_latest(c)
 				c.Ctx.StatusCode(204)
 				return
 			}
@@ -136,7 +133,7 @@ func (c *ApiController) RegisterHandler() {
 
 	}
 	c.Ctx.StatusCode(400)
-	c.Ctx.JSON(iris.Map{"status": 400, "error_msg": err})
+	c.Ctx.JSON(iris.Map{"status": 400, "error_msg": err.Error()})
 }
 
 func (c *ApiController) LatestHandler() {
@@ -160,7 +157,7 @@ func (c *ApiController) MsgHandler() {
 	c.DB.Model(&models.User{}).Select("users.username as user", "messages.text as content", "messages.pub_date").Joins(
 		"INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0",
 	).Order("messages.pub_date DESC").Limit(no_msg).Scan(&msgs)
-
+	update_latest(c)
 	c.Ctx.JSON(msgs)
 }
 
@@ -176,6 +173,7 @@ func (c *ApiController) UserMsgsGetHandler(username string) {
 
 	if profile_user_id == -1 {
 		c.Ctx.StatusCode(404)
+		c.Ctx.JSON(iris.Map{"status": 404, "error_msg": "user not found"})
 		return
 	}
 
@@ -184,12 +182,11 @@ func (c *ApiController) UserMsgsGetHandler(username string) {
 	c.DB.Table("messages, users").Select("users.username as User", "messages.text as Content", "messages.pub_date as Pub_date").Where(
 		"messages.flagged = 0 AND users.id = messages.author_id AND users.id = ?", profile_user_id,
 	).Order("messages.pub_date DESC").Limit(no_msg).Scan(&msgs)
-
+	update_latest(c)
 	c.Ctx.JSON(msgs)
 }
 
 func (c *ApiController) UserMsgsPostHandler(username string) {
-	update_latest(c)
 	validToken := not_req_from_simulator(c.Ctx)
 
 	if !validToken {
@@ -199,6 +196,7 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 	userId, _ := c.UserService.UsernameToId(username)
 	if userId == -1 {
 		c.Ctx.StatusCode(404)
+		c.Ctx.JSON(iris.Map{"status": 404, "error_msg": "user not found"})
 		return
 	}
 
@@ -208,6 +206,8 @@ func (c *ApiController) UserMsgsPostHandler(username string) {
 	text := msg.Content
 	if text != "" {
 		c.MessageService.CreateMessage(userId, text)
+		update_latest(c)
+
 	}
 	c.Ctx.StatusCode(204)
 }
@@ -219,7 +219,6 @@ func readBody(c *ApiController, v interface{}) {
 }
 
 func (c *ApiController) FollowersGetHandler(username string) {
-	update_latest(c)
 
 	validToken := not_req_from_simulator(c.Ctx)
 	if !validToken {
@@ -230,6 +229,7 @@ func (c *ApiController) FollowersGetHandler(username string) {
 
 	follower_names := c.UserService.GetFollowersByUsername(username, num_followers)
 
+	update_latest(c)
 	c.Ctx.StatusCode(200)
 	c.Ctx.JSON(iris.Map{"follows": follower_names})
 }
@@ -248,13 +248,23 @@ func (c *ApiController) FollowersPostHandler(username string) {
 	if body.Follow != nil && body.Unfollow == nil {
 		// follow
 		followerId, _ := c.UserService.UsernameToId(*body.Follow)
-		c.UserService.FollowUser(userId, followerId)
+		_, err := c.UserService.FollowUser(userId, followerId)
+		if err != nil {
+			c.Ctx.StatusCode(400)
+			c.Ctx.JSON(iris.Map{"status": 400, "error_msg": "Could not follow"})
+			return
+		}
 	} else if body.Follow == nil && body.Unfollow != nil {
 		// un follow
 		followerId, _ := c.UserService.UsernameToId(*body.Unfollow)
-		c.UserService.FollowUser(userId, followerId)
+		_, err := c.UserService.FollowUser(userId, followerId)
+		if err != nil {
+			c.Ctx.StatusCode(400)
+			c.Ctx.JSON(iris.Map{"status": 400, "error_msg": "Could not unfollow"})
+			return
+		}
 	}
-
+	update_latest(c)
 	c.Ctx.StatusCode(204)
 
 }

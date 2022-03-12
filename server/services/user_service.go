@@ -18,7 +18,9 @@ func NewUserService(db *gorm.DB) *UserService {
 func (s *UserService) GetById(userId int) (*models.User, error) {
 
 	user := &models.User{
-		ID: uint(userId),
+		Model: gorm.Model{
+			ID: uint(userId),
+		},
 	}
 	err := s.DB.First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -30,13 +32,12 @@ func (s *UserService) GetById(userId int) (*models.User, error) {
 }
 func (s *UserService) UsernameToId(username string) (int, error) {
 
-	var id int
+	id := -1
 	err := s.DB.Table("users").Where("username = ?", username).Select("id").Scan(&id).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return -1, nil
-	} else if err != nil {
-		return -1, err
+	if err != nil {
+		return id, err
 	}
+
 	return id, nil
 }
 
@@ -68,7 +69,9 @@ func (s *UserService) FindByUsername(username string) (*models.User, error) {
 func (s *UserService) UserIsFollowing(userId int, followerId int) bool {
 
 	num := s.DB.Model(&models.User{
-		ID: uint(userId),
+		Model: gorm.Model{
+			ID: uint(userId),
+		},
 	}).Where("follower_id = ?", followerId).Association(
 		"Followers",
 	).Count()
@@ -78,11 +81,15 @@ func (s *UserService) UserIsFollowing(userId int, followerId int) bool {
 }
 func (s *UserService) FollowUser(userId int, followerId int) (bool, error) {
 	err := s.DB.Model(&models.User{
-		ID: uint(userId),
+		Model: gorm.Model{
+			ID: uint(userId),
+		},
 	}).Association(
 		"Followers",
 	).Append(&models.User{
-		ID: uint(followerId),
+		Model: gorm.Model{
+			ID: uint(userId),
+		},
 	})
 
 	if err != nil {
@@ -93,11 +100,15 @@ func (s *UserService) FollowUser(userId int, followerId int) (bool, error) {
 }
 func (s *UserService) UnfollowUser(userId int, followerId int) (bool, error) {
 	err := s.DB.Model(&models.User{
-		ID: uint(userId),
+		Model: gorm.Model{
+			ID: uint(userId),
+		},
 	}).Association(
 		"Followers",
 	).Delete(&models.User{
-		ID: uint(followerId),
+		Model: gorm.Model{
+			ID: uint(userId),
+		},
 	})
 	if err != nil {
 		return false, err

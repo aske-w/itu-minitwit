@@ -4,7 +4,7 @@ services:
   db:
     image: mysql:8.0.26
     platform: linux/x86_64 # Necessary for running on M1 Macs
-    container_name: db
+    container_name: database
     restart: always
     environment:
       - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
