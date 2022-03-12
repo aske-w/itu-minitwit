@@ -12,7 +12,6 @@ services:
   server:
     image: ${DOCKER_USERNAME}/minitwitimage
     container_name: minitwit
-
     environment:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
