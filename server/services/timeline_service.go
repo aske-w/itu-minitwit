@@ -41,7 +41,7 @@ func (s *TimelineService) GetPublicTimeline() (*[]Tweet, error) {
 	if err != nil {
 		return nil, err
 	}
-	addAvatarAndDates(&tweets)
+	AddAvatarAndDates(&tweets)
 
 	return &tweets, nil
 }
@@ -54,7 +54,7 @@ func (s *TimelineService) GetUserTimeline(userId int) (*[]Tweet, error) {
 	if err != nil {
 		return nil, err
 	}
-	addAvatarAndDates(&tweets)
+	AddAvatarAndDates(&tweets)
 
 	return &tweets, nil
 }
@@ -65,13 +65,13 @@ func (s *TimelineService) GetPrivateTimeline(userId int) (*[]Tweet, error) {
 		users.id = ? or
 		users.id in (select follower_id from followers
 								where user_id = ?))
-		order by messages.pub_date DESC limit ? 
+		order by messages.pub_date DESC limit ?
 	`, userId, userId, 30).Scan(&tweets).Error
 
 	if err != nil {
 		return nil, err
 	}
-	addAvatarAndDates(&tweets)
+	AddAvatarAndDates(&tweets)
 
 	return &tweets, nil
 }
@@ -79,7 +79,7 @@ func (s *TimelineService) GetPrivateTimeline(userId int) (*[]Tweet, error) {
 /*
 Adds avatar and format dates for an array reference
 */
-func addAvatarAndDates(tweets *[]Tweet) {
+func AddAvatarAndDates(tweets *[]Tweet) {
 	for i, tweet := range *tweets {
 		(*tweets)[i].Gravatar_Url = gravatar_url(tweet.Email, 48)
 		(*tweets)[i].Format_Datetime = format_datetime(tweet.Pub_date)

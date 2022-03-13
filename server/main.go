@@ -116,5 +116,21 @@ func main() {
 	api.Register(authService)
 	api.Handle(new(controllers.ApiController))
 
+	tweetsAPI := app.Party("/tweets")
+	{
+		tweetsAPI.Get("/", func(ctx iris.Context) {
+			tweets := []services.Tweet{}
+			err := db.Model(&models.User{}).Select("users.id as UserId", "users.Username", "users.Email", "messages.id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
+
+			if err != nil {
+				// return nil, err
+			}
+
+			services.AddAvatarAndDates(&tweets)
+
+			ctx.JSON(tweets)
+		})
+	}
+
 	app.Listen(":8080", iris.WithOptimizations)
 }
