@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"aske-w/itu-minitwit/web/utils"
+	"regexp"
 	"strconv"
 
 	"github.com/kataras/iris/v12"
@@ -31,6 +33,25 @@ var httpDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
 
 func PrometheusRequestCountMiddleware(ctx iris.Context) {
 	path := ctx.Path()
+	// Remove usernames from path since it otherwise generates enough data
+	// to cause Prometheus to run out of memory when scraping webserver metrics.
+	// Ideally the same should be done for non-API endpoints
+	match, err := regexp.MatchString("^/api/.+", path)
+	utils.CheckError(err)
+	if match {
+		match, err = regexp.MatchString("/api/msgs/.+", path)
+		utils.CheckError(err)
+		if match {
+			path = "/api/msgs/<username>"
+		} else {
+			match, err = regexp.MatchString("/api/fllws/.+", path)
+			utils.CheckError(err)
+			if match {
+				path = "/api/fllws/<username>"
+			}
+		}
+	}
+
 	totalRequests.WithLabelValues(path).Inc()
 	timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
 
