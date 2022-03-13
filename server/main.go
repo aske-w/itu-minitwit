@@ -31,6 +31,14 @@ func main() {
 	app.Use(logger.New())  // logs request
 	app.Use(recover.New()) // handles panics (shows 404)
 
+	crs := func(ctx iris.Context) {
+		ctx.Header("Access-Control-Allow-Origin", "*")
+
+		ctx.Next()
+	}
+
+	app.UseRouter(crs)
+
 	// Register middleware
 	app.Use(middleware.InitMiddleware)
 
