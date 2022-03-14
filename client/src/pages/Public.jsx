@@ -8,18 +8,22 @@ const Public = () => {
     const [tweets, setTweets] = useState([])
     const auth = useSelector(state => state.auth)
 
-    useEffect(() => {
+    const fetchTweets = () => {
         api.get("/tweets")
             .then(response => {
                 setTweets(response.data)
             })
+    }
+
+    useEffect(() => {
+        fetchTweets()
     },[])
 
     return (
         <div>
             <h2>Public timeline</h2>
 
-            { auth.isLoggedIn && <ComposeForm /> }
+            { auth.isLoggedIn && <ComposeForm callback={fetchTweets}/> }
 
             <ul className="messages">
                 { tweets.map(tweet => {

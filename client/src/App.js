@@ -42,9 +42,6 @@ function App() {
 				<Routes>
 					<Route path='/' element={<Index/>} />
 					<Route path='/public' element={<Public/>} />
-					{/* <Route exact path ="/">
-						{!auth.isLoggedIn ? <Navigate to="/public"/> : <Index />}
-					</Route> */}
 					<Route path='/signup' element={<Signup/>} />
 					<Route path='/signin' element={<Signin/>} />
 				</Routes>

@@ -10,6 +10,13 @@ const Index = () => {
     const auth = useSelector(state => state.auth)
     const navigate = useNavigate()
 
+    const fetchTweets = () => {
+        api.get("/timeline")
+            .then(response => {
+                setTweets(response.data)
+            })
+    }
+
     useEffect(() => {
         if ( ! auth.isLoggedIn) {
             navigate("/public")
@@ -17,17 +24,14 @@ const Index = () => {
             return
         }
 
-        api.get("/timeline")
-            .then(response => {
-                setTweets(response.data)
-            })
+        fetchTweets()
     }, [])
 
     return (
         <div>
             <h2>My timeline</h2>
 
-            { auth.isLoggedIn && <ComposeForm /> }
+            { auth.isLoggedIn && <ComposeForm callback={fetchTweets}/> }
 
             <ul className="messages">
                 { tweets.map(tweet => {

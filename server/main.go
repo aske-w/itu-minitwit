@@ -122,7 +122,7 @@ func main() {
 	// api.Register(authService)
 	// api.Handle(new(controllers.ApiController))
 
-	signer := jwt.NewSigner(jwt.HS256, sigKey, 10*time.Minute)
+	signer := jwt.NewSigner(jwt.HS256, sigKey, 60*time.Minute)
 
 	verifier := jwt.NewVerifier(jwt.HS256, sigKey)
 
@@ -132,11 +132,11 @@ func main() {
 		return new(UserClaims)
 	})
 
-	app.Get("/api/tweets", indexHandler(db))
-
 	app.Post("/api/signup", signupHandler(db, userService, authService))
-
 	app.Post("/api/signin", signinHandler(signer, db))
+
+	app.Get("/api/tweets", indexHandler(db))
+	app.Post("/api/tweets", storeTweetHandler(db)).Use(authMiddleware)
 
 	// protectedAPI := app.Party("/api/protected")
 	// protectedAPI.Use(authMiddleware)
@@ -148,7 +148,7 @@ func main() {
 func indexHandler(db *gorm.DB) iris.Handler {
 	return func(ctx iris.Context) {
 		tweets := []services.Tweet{}
-		err := db.Model(&models.User{}).Select("users.id as UserId", "users.Username", "users.Email", "messages.id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
+		err := db.Model(&models.User{}).Select("users.id as UserId", "users.Username", "users.Email", "messages.id as Message_id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
 
 		if err != nil {
 			// return nil, err
@@ -157,6 +157,43 @@ func indexHandler(db *gorm.DB) iris.Handler {
 		services.AddAvatarAndDates(&tweets)
 
 		ctx.JSON(tweets)
+	}
+}
+
+type StoreTweetRequest struct {
+	Text string `json:"text"`
+}
+
+func storeTweetHandler(db *gorm.DB) iris.Handler {
+	return func(ctx iris.Context) {
+		tweetRequest := StoreTweetRequest{}
+		err := ctx.ReadJSON(&tweetRequest)
+
+		if err != nil {
+			ctx.StatusCode(422)
+			ctx.JSON(iris.Map{"error": err.Error()})
+
+			return
+		}
+
+		claims := jwt.Get(ctx).(*UserClaims)
+
+		message := models.Message{
+			Author_id: int(claims.Id),
+			Text:      tweetRequest.Text,
+			Pub_date:  int(time.Now().Unix()),
+		}
+
+		result := db.Create(&message)
+
+		if result.Error != nil {
+			ctx.StatusCode(422)
+			ctx.JSON(iris.Map{"error": result.Error.Error()})
+
+			return
+		}
+
+		ctx.StatusCode(200)
 	}
 }
 
@@ -281,7 +318,7 @@ func timeline(db *gorm.DB) iris.Handler {
 				users.id as UserId,
 				users.Username,
 				users.Email,
-				messages.id,
+				messages.id as Message_id,
 				messages.Author_id,
 				messages.Text,
 				messages.Pub_date,
