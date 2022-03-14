@@ -1,31 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import Tweet from '../components/Tweet';
 import { useSelector } from 'react-redux'
-import { useNavigate } from "react-router-dom";
+import Tweet from '../components/Tweet';
 import api from '../api';
 import ComposeForm from '../components/ComposeForm';
 
-const Index = () => {
+const Public = () => {
     const [tweets, setTweets] = useState([])
     const auth = useSelector(state => state.auth)
-    const navigate = useNavigate()
 
     useEffect(() => {
-        if ( ! auth.isLoggedIn) {
-            navigate("/public")
-
-            return
-        }
-
-        api.get("/timeline")
+        api.get("/tweets")
             .then(response => {
                 setTweets(response.data)
             })
-    }, [])
+    },[])
 
     return (
         <div>
-            <h2>My timeline</h2>
+            <h2>Public timeline</h2>
 
             { auth.isLoggedIn && <ComposeForm /> }
 
@@ -44,4 +36,4 @@ const Index = () => {
     )
 }
 
-export default Index
+export default Public
