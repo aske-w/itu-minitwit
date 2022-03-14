@@ -68,7 +68,7 @@ type FilteredMsgs []iris.Map
 
 type RegisterUser struct {
 	Username string `json:"username"`
-	Password string `json:"pwd"`
+	Password string `json:"password"`
 	Email    string `json:"email"`
 }
 
