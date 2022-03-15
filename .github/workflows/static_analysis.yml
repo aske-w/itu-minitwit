@@ -7,7 +7,7 @@ on:
     branches:
       - development
 jobs:
-  tests:
+  static_analysis:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
@@ -21,6 +21,8 @@ jobs:
         working-directory: ./server
         run: if [ "$(go vet)" -gt 0 ]; then exit 1; fi
       - name: Run Gosec Security Scanner
-        uses: securego/gosec@master
-        with:
-          args: -exclude=G104 ./server/...
+        uses: wei/wget@v1
+        working-directory: ./server
+        run: |
+          wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s v2.10.0
+          gosec -exclude=G104 ./...
