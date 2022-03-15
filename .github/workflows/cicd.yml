@@ -64,13 +64,32 @@ jobs:
             docker-compose pull
             docker-compose up -d
   
-  release-on-push:
-    runs-on: ubuntu-latest
+  versioning:
+    name: "Automatic version tagging"
     needs: deploy
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
     steps:
-      - uses: rymndhng/release-on-push-action@v0.24.0
+      - uses: actions/checkout@2
+      - name: Extract version from PR title
+        run: |
+          VERSION=`git tag --sort="-v:refname" | grep -m1 "^v[0-9]+\.[0-9]+\.[0-9]+$"`
+          if [[ $? = 0 ]]; then
+            PATTERN="^v[0-9]+\.[0-9]+\.([0-9]+)$"
+            if [[ VERSION =~ PATTERN ]]; then
+              git tag $((${BASH_REMATCH[1]} + 1))
+              git push origin --tags
+            else
+              exit 1
+            fi
+            exit 1
+          fi
+  
+  tagged-release:
+    name: "Tagged Release"
+    runs-on: "ubuntu-latest"
+    needs: versioning
+    steps:
+      - uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          bump_version_scheme: minor
-          release_name: "Release <RELEASE_TAG>"
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
