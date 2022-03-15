@@ -23,7 +23,7 @@ jobs:
       - name: download gosec
         uses: wei/wget@v1
         with:
-          args: -O ./ https://raw.githubusercontent.com/securego/gosec/master/install.sh
+          args: https://raw.githubusercontent.com/securego/gosec/master/install.sh
       - name: Install Gosec
         run: chmod +x ./install.sh && ./install.sh v2.10.0 
       - name: Run Gosec Security Scanner
