@@ -74,13 +74,14 @@ jobs:
         run: |
           VERSION=`git tag --sort="-v:refname" | grep -m1 "^v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*"`
           if [[ $? = 0 ]]; then
-            PATTERN="^v[0-9][0-9]*\.[0-9][0-9]*\.([0-9][0-9]*)"
+            PATTERN="^v([0-9][0-9]*)\.([0-9][0-9]*)\.([0-9][0-9]*)"
             if [[ $VERSION =~ $PATTERN ]]; then
-              git tag $((${BASH_REMATCH[1]} + 1))
+              git tag "v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((${BASH_REMATCH[3]} + 1))"
               git push origin --tags
             else
               exit 1
             fi
+          else
             exit 1
           fi
   
