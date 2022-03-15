@@ -21,9 +21,10 @@ jobs:
         working-directory: ./server
         run: if [ "$(go vet)" -gt 0 ]; then exit 1; fi
       - name: install gosec
-        working-directory: ./server
-        uses: wei/wget@v1
+        uses: wei/curl@master
         with:
-          args: -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s v2.10.0
+          args: -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s v2.10.0
+      - name: Run Gosec Security Scanner
+        working-directory: ./server
         run: |
           gosec -exclude=G104 ./...
