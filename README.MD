@@ -97,3 +97,14 @@ In order to add data source in Grafana, in Grafana navigate to configuration/Dat
 
 ### Creating Dashboard in Grafana
 Once promotheues has been added as a data source we can under dashboard/new ```add a new panel```. We can for example monitor the different container memory usage in bytes by this query ```sum(container_memory_usage_bytes{name=~".+"}) by(name)```. It only shows containers with a name. 
+
+## Static analysis tools
+On each pr or push to the ```development``` branch, the github action ```static_analysis``` is run. The action checks code formatting, constructs and potientiel security issues in source code. If a check fails the pipleline will fail.
+### Format
+Checks the code formatting. In case the code is not formatted correctly, it will throw an error and stop the pipeline. 
+
+### Examine source
+Reports suspicious constructs in the source code. For example if ```Printf``` function arguements align with format string.
+
+### Gosec Security Scanner
+Scan source code for security problems and reports them. Gosec can be configured to run a set of rules. In our case we run all rules except for G104 ```./bin/gosec -exclude=G104 ./...```. G104 audits errors not checked and since we do not handle all errors, the check will fail. However this should be handled in the future.
