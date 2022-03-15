@@ -1,9 +1,8 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { useSelector} from 'react-redux'
 import api from "../api"
 
 const ComposeForm = ({ callback }) => {
-	const textInput = useRef(null)
 	const [form, setForm] = useState({
 		text: "",
 	})
@@ -18,22 +17,30 @@ const ComposeForm = ({ callback }) => {
 
 		api.post("tweets", form).then(() => {
 			setForm({text: ""})
-			textInput.current.value = ""
 
 			callback()
 		})
     }
 
 	return (
-		<div className="twitbox">
-			<h3>What's on your mind {auth.user.username}?</h3>
-			<form onSubmit={handleSubmit}>
-				<p>
-					<input ref={textInput} type="text" name="text" size="60" onChange={handleChange}/>
-					<input type="submit" value="Share" />
-				</p>
-			</form>
-		</div>
+		<form onSubmit={handleSubmit} className="my-4">
+			<textarea
+				rows={3}
+				name="text"
+				className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+				placeholder={`What's on your mind, ${auth.user.username}?`}
+				onChange={handleChange}
+				value={form.text}
+			/>
+			<div className="mt-2 flex justify-end">
+				<button
+					type="submit"
+					className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+				>
+					Post
+				</button>
+			</div>
+		</form>
 	)
 }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Tweet from '../components/Tweet';
+import Tweets from '../components/Tweets';
 import { useSelector } from 'react-redux'
 import { useNavigate } from "react-router-dom";
 import api from '../api';
@@ -29,21 +29,11 @@ const Index = () => {
 
     return (
         <div>
-            <h2>My timeline</h2>
+            <h2 className="text-2xl font-semibold mb-4">My timeline</h2>
 
             { auth.isLoggedIn && <ComposeForm callback={fetchTweets}/> }
 
-            <ul className="messages">
-                { tweets.map(tweet => {
-                    return (
-                        <Tweet key={tweet.Message_id} tweet={tweet}/>
-                    )
-                })}
-
-                {tweets.length === 0 &&
-                    <li><em>There's no message so far.</em></li>
-                }
-            </ul>
+            <Tweets tweets={tweets}/>
         </div>
     )
 }

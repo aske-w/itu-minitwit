@@ -19,35 +19,58 @@ function App() {
 	}
 
 	return (
-		<div className="page">
-			<h1>MiniTwit</h1>
+		<div className="min-h-screen bg-gray-50">
+			<div className="flex max-w-4xl mx-auto py-12">
+				<div className="w-1/4 shrink-0">
+					<nav className="space-y-1" aria-label="Sidebar">
+						{ auth.isLoggedIn ?
+							<>
+								<Link
+									to="/"
+									className="flex items-center px-3 py-2 text-sm font-medium rounded-md"
+								>My timeline</Link>
 
-			<div className="navigation">
-				{ auth.isLoggedIn ?
-					<>
-						<Link to="/">my timeline</Link> |
-						<Link to="/public">public timeline</Link> |
-						<button type="button" onClick={handleSignout}>sign out [{auth.user.username}]</button>
-					</>
-				:
-					<>
-						<Link to="/public">Public Timeline</Link> |
-						<Link to="/signup">Sign Up</Link> |
-						<Link to="/signin">Sign In</Link>
-					</>
-				}
+								<Link
+									to="/public"
+									className="flex items-center px-3 py-2 text-sm font-medium rounded-md"
+								>Public timeline</Link>
+
+								<button
+									type="button"
+									className='flex items-center px-3 py-2 text-sm font-medium rounded-md'
+									onClick={handleSignout}
+								>Sign out</button>
+							</>
+						:
+							<>
+								<Link
+									to="/public"
+									className="flex items-center px-3 py-2 text-sm font-medium rounded-md"
+								>Public timeline</Link>
+
+								<Link
+									to="/signup"
+									className="flex items-center px-3 py-2 text-sm font-medium rounded-md"
+								>Sign up</Link>
+
+								<Link
+									to="/signin"
+									className="flex items-center px-3 py-2 text-sm font-medium rounded-md"
+								>Sign in</Link>
+							</>
+						}
+					</nav>
+				</div>
+
+				<div className="w-3/4">
+					<Routes>
+						<Route path='/' element={<Index/>} />
+						<Route path='/public' element={<Public/>} />
+						<Route path='/signup' element={<Signup/>} />
+						<Route path='/signin' element={<Signin/>} />
+					</Routes>
+				</div>
 			</div>
-
-			<div className="body">
-				<Routes>
-					<Route path='/' element={<Index/>} />
-					<Route path='/public' element={<Public/>} />
-					<Route path='/signup' element={<Signup/>} />
-					<Route path='/signin' element={<Signin/>} />
-				</Routes>
-			</div>
-
-			<div className="footer">MiniTwit &mdash; An Iris Application</div>
 		</div>
 	);
 }
