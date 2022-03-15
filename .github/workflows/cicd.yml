@@ -74,7 +74,7 @@ jobs:
         run: |
           VERSION=`git tag --sort="-v:refname" | grep -m1 "^v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*"`
           echo "${VERSION}"
-          if [[ $VERSION = ^v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* ]]; then
+          if [[ $VERSION =~ ^v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* ]]; then
             PATTERN="^v([0-9][0-9]*)\.([0-9][0-9]*)\.([0-9][0-9]*)"
             echo "${PATTERN}"
             if [[ $VERSION =~ $PATTERN ]]; then
