@@ -142,7 +142,7 @@ func main() {
 	app.Get("/api/users/{username}/tweets", userTweets(db))
 
 	// app.Get("/api/users/{username}/follow", )
-	app.Post("/api/users/{username}/follow", followHandler(db))
+	app.Post("/api/users/{username}/follow", followHandler(db)).Use(authMiddleware)
 	// app.Post("/api/users/{username}/unfollow", unfollowHandler(db))
 
 	// protectedAPI := app.Party("/api/protected")
@@ -152,10 +152,10 @@ func main() {
 	app.Listen(":8080")
 }
 
-type Follow struct {
+type Follower struct {
 	gorm.Model
-	user_id     int `json:"user_id"` //Following
-	follower_id int `json:"follower_id`
+	User_id     int `json:"user_id"` //Following
+	Follower_id int `json:"follower_id"`
 }
 
 func followHandler(db *gorm.DB) iris.Handler {
@@ -175,18 +175,26 @@ func followHandler(db *gorm.DB) iris.Handler {
 		// var follow Follow
 		// db.Select("COUNT(*) as following").Where("user_id = ?", followee.ID).Where("follower_id = ?", claims.Id).First(&follow)
 
-		var follow Follow
-		followResult := db.Where("user_id = ?", "follower_id = ?", followee.ID, claims.Id).First(&follow)
+		// followResult := db.Where("user_id = ? AND follow_id = ?", followee.ID, claims.Id).First(&Follower{})
+		followResult := db.First(Follower{User_id: int(followee.ID), Follower_id: int(claims.Id)})
+		// followResult := db.Where("user_id = ?", "follower_id = ?", followee.ID, claims.Id).First(&follow)
+		// fmt.Println(followResult.Error)
 
-		following := Follow{user_id: int(followee.ID), follower_id: int(claims.Id)}
+		// following := Follower{User_id: 1, Follower_id: 2}
+		// db.Create(&Follower{User_id: 1, Follower_id: 2})
 		if followResult.RowsAffected > 0 {
 			//UnFollow
-			db.Delete(&following)
+			db.Unscoped().Where("user_id = ? AND follower_id = ?", followee.ID, claims.Id).Delete(&Follower{}) //Working delete follow
 		} else {
 			//follow
-			db.Create(&following)
+			db.Model(Follower{}).Create(map[string]interface{}{ //Working create follow
+				"user_id": followee.ID, "follower_id": claims.Id,
+			})
 		}
-
+		// db.Delete(&Follower{}, "user_id = ? AND follower_id = ?", 1, 2)
+		// db.Where("user_id = ? AND follower_id = ?", 1, 2).Delete(&Follower{})
+		// db.Raw(`DELETE FROM followers WHERE user_id = ? AND follower_id = ?`, 1, 2)
+		// db.Delete(&following)
 		ctx.JSON("hej")
 
 		// db.Raw(`
