@@ -138,11 +138,70 @@ func main() {
 	app.Get("/api/tweets", indexHandler(db))
 	app.Post("/api/tweets", storeTweetHandler(db)).Use(authMiddleware)
 
+	app.Get("/api/users/{username}", userHandler(db))
+	app.Get("/api/users/{username}/tweets", userTweets(db))
+
 	// protectedAPI := app.Party("/api/protected")
 	// protectedAPI.Use(authMiddleware)
 	app.Get("/api/timeline", timeline(db)).Use(authMiddleware)
 
 	app.Listen(":8080")
+}
+
+func userTweets(db *gorm.DB) iris.Handler {
+	return func(ctx iris.Context) {
+		tweets := []services.Tweet{}
+		err := db.Raw(`
+			SELECT
+				users.id as UserId,
+				users.Username,
+				users.Email,
+				messages.id as Message_id,
+				messages.Author_id,
+				messages.Text,
+				messages.Pub_date,
+				messages.Flagged
+			from users, messages
+			where
+				messages.flagged = 0 and
+				messages.author_id = users.id and
+				(
+					users.username = ?
+				)
+			order by messages.pub_date DESC
+			limit ?
+		`, ctx.Params().Get("username"), 30).Scan(&tweets).Error
+
+		if err != nil {
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "Tweets not found"})
+
+			return
+		}
+
+		services.AddAvatarAndDates(&tweets)
+
+		ctx.JSON(tweets)
+	}
+}
+
+func userHandler(db *gorm.DB) iris.Handler {
+	return func(ctx iris.Context) {
+		var user models.User
+		result := db.First(&user, "username = ?", ctx.Params().Get("username"))
+
+		if result.Error != nil {
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "User not found"})
+
+			return
+		}
+
+		ctx.JSON(iris.Map{
+			"id":       user.ID,
+			"username": user.Username,
+		})
+	}
 }
 
 func indexHandler(db *gorm.DB) iris.Handler {
