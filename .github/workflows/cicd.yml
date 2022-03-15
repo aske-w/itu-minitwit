@@ -10,63 +10,63 @@ on:
   workflow_dispatch:
 
 jobs:
-  # build:
-  #   name: "Build and push"
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout branch
-  #       uses: actions/checkout@v2
+  build:
+    name: "Build and push"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v2
 
-  #     - name: Login to Dockerhub
-  #       uses: docker/login-action@v1
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Dockerhub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-  #     - name: Build and push docker image
-  #       run: |
-  #         docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest . -f Dockerfile
-  #         docker push ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
+      - name: Build and push docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest . -f Dockerfile
+          docker push ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
   
-  # deploy:
-  #   name: "Deploy to droplet"
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Deploy to Digital Ocean droplet via SSH action
-  #       uses: appleboy/ssh-action@v0.1.4
-  #       env:
-  #         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  #         MYSQL_USER: ${{ secrets.MYSQL_USER }}
-  #         MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-  #         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-  #         MYSQL_ADDRESS: ${{ secrets.MYSQL_ADDRESS }}
-  #         MYSQL_PORT: 25060
-  #       with:
-  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
-  #         host: ${{ secrets.SERVER_IP }}
-  #         username: ${{ secrets.SERVER_USER }}
-  #         port: 22
-  #         envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD
+  deploy:
+    name: "Deploy to droplet"
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Digital Ocean droplet via SSH action
+        uses: appleboy/ssh-action@v0.1.4
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_ADDRESS: ${{ secrets.MYSQL_ADDRESS }}
+          MYSQL_PORT: 25060
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          port: 22
+          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD
 
-  #         script: |
-  #           cd /vagrant
+          script: |
+            cd /vagrant
 
-  #           export DOCKER_USERNAME=$DOCKER_USERNAME
-  #           export MYSQL_USER=$MYSQL_USER
-  #           export MYSQL_DATABASE=$MYSQL_DATABASE
-  #           export MYSQL_PASSWORD=$MYSQL_PASSWORD
-  #           export MYSQL_ADDRESS=$MYSQL_ADDRESS
-  #           export MYSQL_PORT=$MYSQL_PORT
-  #           export GRAFANA_ADMIN_USERNAME=$GRAFANA_ADMIN_USERNAME
-  #           export GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
+            export DOCKER_USERNAME=$DOCKER_USERNAME
+            export MYSQL_USER=$MYSQL_USER
+            export MYSQL_DATABASE=$MYSQL_DATABASE
+            export MYSQL_PASSWORD=$MYSQL_PASSWORD
+            export MYSQL_ADDRESS=$MYSQL_ADDRESS
+            export MYSQL_PORT=$MYSQL_PORT
+            export GRAFANA_ADMIN_USERNAME=$GRAFANA_ADMIN_USERNAME
+            export GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
 
-  #           docker-compose pull
-  #           docker-compose up -d
+            docker-compose pull
+            docker-compose up -d
   
   versioning:
     name: "Tag and release"
-    # needs: deploy
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
