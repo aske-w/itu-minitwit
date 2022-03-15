@@ -73,9 +73,12 @@ jobs:
       - name: Extract version from PR title
         run: |
           VERSION=`git tag --sort="-v:refname" | grep -m1 "^v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*"`
-          if [[ $? = 0 ]]; then
+          echo "::set-output name=matched_version::${VERSION}"
+          if [[ $VERSION = ^v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]* ]]; then
             PATTERN="^v([0-9][0-9]*)\.([0-9][0-9]*)\.([0-9][0-9]*)"
+            echo "::set-output name=pattern::${PATTERN}"
             if [[ $VERSION =~ $PATTERN ]]; then
+              echo "::set-output name=new_tag::v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((${BASH_REMATCH[3]} + 1))"
               git tag "v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((${BASH_REMATCH[3]} + 1))"
               git push origin --tags
             else
@@ -84,6 +87,7 @@ jobs:
           else
             exit 1
           fi
+        id: extract_version
   
   tagged-release:
     name: "Tagged Release"
