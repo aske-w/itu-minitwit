@@ -4,6 +4,7 @@ import Index from "./pages/Index"
 import Public from './pages/Public';
 import Signin from "./pages/Signin"
 import Signup from "./pages/Signup"
+import Profile from "./pages/Profile"
 import { useSelector, useDispatch } from 'react-redux'
 import { logout } from './reducers/auth'
 
@@ -68,6 +69,7 @@ function App() {
 						<Route path='/public' element={<Public/>} />
 						<Route path='/signup' element={<Signup/>} />
 						<Route path='/signin' element={<Signin/>} />
+						<Route path="/users/:username" element={<Profile />}/>
 					</Routes>
 				</div>
 			</div>

@@ -1,9 +1,13 @@
 import React from 'react'
+import { Link } from "react-router-dom";
 
 const Tweet = ({ tweet }) => {
 	return (
 		<li>
-			<div className="flex space-x-3 border bg-white px-3 py-3 rounded-lg shadow-sm">
+			<Link
+				to={`/users/${tweet.Username.toLowerCase()}`}
+				className="flex space-x-3 border bg-white px-3 py-3 rounded-lg shadow-sm"
+			>
 				<div>
 					<img src={tweet.Gravatar_Url} alt="profile_img" />
 				</div>
@@ -16,7 +20,7 @@ const Tweet = ({ tweet }) => {
 
 					<div className="text-sm text-gray-600 line-clamp-2">{tweet.Text}</div>
 				</div>
-			</div>
+			</Link>
 		</li>
 	)
 }
