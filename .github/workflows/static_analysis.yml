@@ -25,7 +25,7 @@ jobs:
         with:
           args: https://raw.githubusercontent.com/securego/gosec/master/install.sh
       - name: Install Gosec
-        run: chmod +x ./install.sh && ./install.sh v2.10.0 
+        run: sh ./install.sh v2.10.0 
       - name: Run Gosec Security Scanner
         working-directory: ./server
         run: |
