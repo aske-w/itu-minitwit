@@ -21,7 +21,9 @@ const Public = () => {
 
     return (
         <div>
-            <h2 className="text-2xl font-semibold mb-4">Public timeline</h2>
+            <div>
+                <h2 className="text-2xl font-semibold mb-4">Public timeline</h2>
+            </div>
 
             { auth.isLoggedIn && <ComposeForm callback={fetchTweets}/> }
 

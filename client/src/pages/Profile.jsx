@@ -28,6 +28,18 @@ const Profile = (props) => {
             })
     }
 
+    const handleFollow = (e) => {
+        e.preventDefault()
+
+        api.post(`/users/${username}/follow`, username).then(() => {})
+
+    }
+
+    const isFollowing = () => {
+
+        api.get(`/users/${username}/follow`)
+    }
+
     useEffect(() => {
         fetchUser()
     }, [])
@@ -46,7 +58,19 @@ const Profile = (props) => {
 
     return (
         <div>
-            <h2 className="text-2xl font-semibold mb-4">{ user.username }'s timeline</h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-semibold">{ user.username }'s timeline</h2>
+
+                { auth.isLoggedIn &&
+                    <button
+                        type="button"
+                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        onClick={handleFollow}
+                    >
+                        Follow
+                    </button>
+                }
+            </div>
 
             <Tweets tweets={tweets}/>
         </div>

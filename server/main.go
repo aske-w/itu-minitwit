@@ -141,11 +141,64 @@ func main() {
 	app.Get("/api/users/{username}", userHandler(db))
 	app.Get("/api/users/{username}/tweets", userTweets(db))
 
+	// app.Get("/api/users/{username}/follow", )
+	app.Post("/api/users/{username}/follow", followHandler(db))
+	// app.Post("/api/users/{username}/unfollow", unfollowHandler(db))
+
 	// protectedAPI := app.Party("/api/protected")
 	// protectedAPI.Use(authMiddleware)
 	app.Get("/api/timeline", timeline(db)).Use(authMiddleware)
 
 	app.Listen(":8080")
+}
+
+type Follow struct {
+	gorm.Model
+	user_id     int `json:"user_id"` //Following
+	follower_id int `json:"follower_id`
+}
+
+func followHandler(db *gorm.DB) iris.Handler {
+	return func(ctx iris.Context) {
+		claims := jwt.Get(ctx).(*UserClaims)
+
+		var followee models.User
+		result := db.First(&followee, "username = ?", ctx.Params().Get("username"))
+
+		if result.Error != nil {
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "User not found"})
+
+			return
+		}
+
+		// var follow Follow
+		// db.Select("COUNT(*) as following").Where("user_id = ?", followee.ID).Where("follower_id = ?", claims.Id).First(&follow)
+
+		var follow Follow
+		followResult := db.Where("user_id = ?", "follower_id = ?", followee.ID, claims.Id).First(&follow)
+
+		following := Follow{user_id: int(followee.ID), follower_id: int(claims.Id)}
+		if followResult.RowsAffected > 0 {
+			//UnFollow
+			db.Delete(&following)
+		} else {
+			//follow
+			db.Create(&following)
+		}
+
+		ctx.JSON("hej")
+
+		// db.Raw(`
+		// 	SELECT COUNT(*) as following
+		// 	FROM followers
+		// 	WHERE user_id = ? AND follower_id = ?`, followee.ID, claims.Id,
+		// ).First(&follow)
+
+		// ctx.JSON(iris.Map{
+		// 	"id": follow,
+		// })
+	}
 }
 
 func userTweets(db *gorm.DB) iris.Handler {
