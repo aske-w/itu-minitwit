@@ -2,6 +2,7 @@ package services
 
 import (
 	"aske-w/itu-minitwit/models"
+	/* #nosec */
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -97,6 +98,7 @@ func gravatar_url(email string, size int) string {
 	lowered := strings.ToLower(stripped)
 	valid := strings.ToValidUTF8(lowered, "")
 
+	/* #nosec */
 	hasher := md5.New()
 	data := []byte(valid)
 	hasher.Write(data)
