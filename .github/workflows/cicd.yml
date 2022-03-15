@@ -64,3 +64,12 @@ jobs:
             docker-compose pull
             docker-compose up -d
   
+  release-on-push:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: rymndhng/release-on-push-action@v0.24.0
+        with:
+          bump_version_scheme: minor
+          release_name: "Release <RELEASE_TAG>"
