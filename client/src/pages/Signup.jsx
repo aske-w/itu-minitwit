@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 import api from '../api'
+import { login } from '../reducers/auth'
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from 'react-redux'
 
 const Signup = () => {
     const [form, setForm] = useState({
@@ -9,6 +12,9 @@ const Signup = () => {
     })
     const [errors, setErrors] = useState([])
 
+    const navigate = useNavigate()
+	const dispatch = useDispatch()
+
     const handleChange = (event) => {
         setForm({...form, [event.target.name]: event.target.value})
     }
@@ -17,8 +23,15 @@ const Signup = () => {
         e.preventDefault()
 
         api.post("/register", form)
-            .then(response => {
+            .then(() => {
+                api.post("signin", {
+                    username: form.username,
+                    password: form.pwd,
+                }).then(response => {
+                    dispatch(login(response.data))
 
+                    navigate("/")
+                })
             })
             .catch(error => {
                 if ([400, 422].includes(error.response.status)) {

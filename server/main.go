@@ -301,6 +301,13 @@ func storeTweetHandler() iris.Handler {
 			return
 		}
 
+		if len(tweetRequest.Text) == 0 {
+			ctx.StatusCode(422)
+			ctx.JSON(iris.Map{"errors": [1]string{"You have to enter a tweet."}})
+
+			return
+		}
+
 		claims := jwt.Get(ctx).(*UserClaims)
 
 		fmt.Println(claims.Id, tweetRequest.Text)
