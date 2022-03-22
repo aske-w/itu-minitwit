@@ -20,10 +20,6 @@ const Profile = (props) => {
             .catch(error => {
                 navigate("/public")
             })
-        // Checks if user is already following or not
-        api.get(`/users/${username}/isfollowing`).then(response => {
-                setIsFollowing(response.data.isFollowing)
-            })
     }
 
     const fetchTweets = () => {
@@ -38,7 +34,12 @@ const Profile = (props) => {
         api.post(`/users/${username}/follow`, { username }).then(() => {
             setIsFollowing(prevValue => !prevValue)
         })
+    }
 
+    const handleIsFollowing = () => {
+        api.get(`/users/${username}/isfollowing`).then(response => {
+            setIsFollowing(response.data.isFollowing)
+        })
     }
 
     useEffect(() => {
@@ -48,6 +49,9 @@ const Profile = (props) => {
     useEffect(() => {
         if ( user) {
             fetchTweets()
+        }
+        if (auth.isLoggedIn) {
+            handleIsFollowing()
         }
     }, [user])
 
@@ -62,7 +66,7 @@ const Profile = (props) => {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">{ user.username }'s timeline</h2>
 
-                { auth.isLoggedIn &&
+                { auth.isLoggedIn && auth.user.username != user.username &&
                     <button
                         type="button"
                         className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
