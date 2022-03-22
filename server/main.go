@@ -6,6 +6,7 @@ import (
 	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/controllers"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -142,7 +143,7 @@ func main() {
 	app.Get("/api/users/{username}/tweets", userTweets(db))
 
 	// app.Get("/api/users/{username}/follow", )
-	app.Post("/api/users/{username}/follow", followHandler(db)).Use(authMiddleware)
+	app.Post("/api/users/{username}/follow", followHandler(db, userService)).Use(authMiddleware)
 	// app.Post("/api/users/{username}/unfollow", unfollowHandler(db))
 
 	// protectedAPI := app.Party("/api/protected")
@@ -153,59 +154,46 @@ func main() {
 }
 
 type Follower struct {
-	gorm.Model
-	User_id     int `json:"user_id"` //Following
-	Follower_id int `json:"follower_id"`
+	User_id     uint `gorm:"primaryKey"` //Following
+	Follower_id uint `gorm:"primaryKey"`
 }
 
-func followHandler(db *gorm.DB) iris.Handler {
+func followHandler(db *gorm.DB, userService *services.UserService) iris.Handler {
 	return func(ctx iris.Context) {
 		claims := jwt.Get(ctx).(*UserClaims)
+		username := ctx.Params().Get("username")
 
-		var followee models.User
-		result := db.First(&followee, "username = ?", ctx.Params().Get("username"))
+		followee, err := userService.FindByUsername(username)
 
-		if result.Error != nil {
+		if err != nil {
 			ctx.StatusCode(404)
-			ctx.JSON(iris.Map{"error": "User not found"})
-
-			return
+			ctx.JSON(iris.Map{"error": "Cant find user"})
 		}
 
-		// var follow Follow
-		// db.Select("COUNT(*) as following").Where("user_id = ?", followee.ID).Where("follower_id = ?", claims.Id).First(&follow)
+		isFollowingAlready := userService.UserIsFollowing(claims.Id, followee.ID)
 
-		// followResult := db.Where("user_id = ? AND follow_id = ?", followee.ID, claims.Id).First(&Follower{})
-		followResult := db.First(Follower{User_id: int(followee.ID), Follower_id: int(claims.Id)})
-		// followResult := db.Where("user_id = ?", "follower_id = ?", followee.ID, claims.Id).First(&follow)
-		// fmt.Println(followResult.Error)
+		fmt.Println(isFollowingAlready)
 
-		// following := Follower{User_id: 1, Follower_id: 2}
-		// db.Create(&Follower{User_id: 1, Follower_id: 2})
-		if followResult.RowsAffected > 0 {
-			//UnFollow
-			db.Unscoped().Where("user_id = ? AND follower_id = ?", followee.ID, claims.Id).Delete(&Follower{}) //Working delete follow
+		if isFollowingAlready {
+			// Unfollow
+			_, err := userService.UnfollowUser(claims.Id, followee.ID)
+
+			if err != nil {
+				ctx.StatusCode(400)
+				ctx.JSON(iris.Map{"error": "Cant unfollow user"})
+			}
 		} else {
-			//follow
-			db.Model(Follower{}).Create(map[string]interface{}{ //Working create follow
-				"user_id": followee.ID, "follower_id": claims.Id,
-			})
+			// Follow
+			_, err := userService.FollowUser(claims.Id, followee.ID)
+
+			if err != nil {
+				ctx.StatusCode(400)
+				ctx.JSON(iris.Map{"error": "Cant follow user"})
+			}
 		}
-		// db.Delete(&Follower{}, "user_id = ? AND follower_id = ?", 1, 2)
-		// db.Where("user_id = ? AND follower_id = ?", 1, 2).Delete(&Follower{})
-		// db.Raw(`DELETE FROM followers WHERE user_id = ? AND follower_id = ?`, 1, 2)
-		// db.Delete(&following)
-		ctx.JSON("hej")
 
-		// db.Raw(`
-		// 	SELECT COUNT(*) as following
-		// 	FROM followers
-		// 	WHERE user_id = ? AND follower_id = ?`, followee.ID, claims.Id,
-		// ).First(&follow)
-
-		// ctx.JSON(iris.Map{
-		// 	"id": follow,
-		// })
+		ctx.StatusCode(200)
+		ctx.JSON(iris.Map{"success": true})
 	}
 }
 

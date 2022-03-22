@@ -31,7 +31,7 @@ const Profile = (props) => {
     const handleFollow = (e) => {
         e.preventDefault()
 
-        api.post(`/users/${username}/follow`, username).then(() => {})
+        api.post(`/users/${username}/follow`, { username }).then(() => {})
 
     }
 
