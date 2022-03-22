@@ -65,7 +65,7 @@ func main() {
 	app.Get("/api/users/{username}/tweets", userTweets(db))
 
 	app.Post("/api/users/{username}/follow", followHandler()).Use(authMiddleware)
-	app.Post("/api/users/{username}/isfollowing", isFollowingHandler()).Use(authMiddleware)
+	app.Get("/api/users/{username}/isfollowing", isFollowingHandler()).Use(authMiddleware)
 
 	app.Get("/api/timeline", timeline(db)).Use(authMiddleware)
 

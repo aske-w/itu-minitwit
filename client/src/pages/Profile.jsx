@@ -20,6 +20,10 @@ const Profile = (props) => {
             .catch(error => {
                 navigate("/public")
             })
+        // Checks if user is already following or not
+        api.get(`/users/${username}/isfollowing`).then(response => {
+                setIsFollowing(response.data.isFollowing)
+            })
     }
 
     const fetchTweets = () => {
@@ -32,19 +36,13 @@ const Profile = (props) => {
     const handleFollow = (e) => {
         e.preventDefault()
         api.post(`/users/${username}/follow`, { username }).then(() => {
-            // if 200 toggle setIsFollowing
             setIsFollowing(prevValue => !prevValue)
         })
 
     }
 
-    const handleIsFollowing = () => {
-        api.get(`/users/${username}/isfollowing`).then(response => setIsFollowing(response.data.success))
-    }
-
     useEffect(() => {
         fetchUser()
-        handleIsFollowing()
     }, [])
 
     useEffect(() => {
