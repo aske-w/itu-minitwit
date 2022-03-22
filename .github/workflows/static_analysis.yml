@@ -49,4 +49,4 @@ jobs:
         run: |
           go install github.com/uw-labs/lichen@latest
           go build -o app main.go 
-          ./bin/lichen --config ../lichen.yml app
+          lichen --config ../lichen.yml app
