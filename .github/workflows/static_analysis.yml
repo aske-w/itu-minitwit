@@ -1,0 +1,38 @@
+name: Static Analysis
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - development
+jobs:
+  static_analysis:
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+
+      - name: Format
+        working-directory: ./server
+        run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+
+      - name: Examine source
+        working-directory: ./server
+        run: if [ "$(go vet)" -gt 0 ]; then exit 1; fi
+
+      - name: Download Gosec
+        uses: wei/wget@v1
+        with:
+          args: -O ./server/install.sh https://raw.githubusercontent.com/securego/gosec/master/install.sh
+
+      - name: Install Gosec version
+        working-directory: ./server
+        run: sh ./install.sh v2.10.0 
+
+      - name: Run Gosec Security Scanner
+        working-directory: ./server
+        run: |
+          ./bin/gosec -exclude=G104 ./...
