@@ -27,101 +27,24 @@ type UserClaims struct {
 	Username string `json:"username"`
 }
 
+var userService services.UserService
+var authService services.AuthService
+var timelineService services.TimelineService
+var messageService services.MessageService
+
 func main() {
 	app := iris.Default()
 
-	// app.Logger().SetLevel("debug") // more logging
-	// app.Favicon("./web/public/favicon.ico")
-	// Load env's
 	environment.InitEnv()
-
-	// app.Use(logger.New())  // logs request
-	// app.Use(recover.New()) // handles panics (shows 404)
-
-	// Register middleware
-	// app.Use(middleware.InitMiddleware)
-
-	// Configure sessions manager.
-	// sess := sessions.New(sessions.Config{
-	// 	Cookie:                      "itu-minitwit-cookie",
-	// 	AllowReclaim:                true,
-	// 	DisableSubdomainPersistence: true,
-	// })
-	// app.Use(sess.Handler())
-
-	// Add html files
-	// tmpl := iris.HTML("./web/views", ".html").
-	// 	Layout("shared/layout.html").
-	// 	Reload(true)
-	// app.RegisterView(tmpl)
-	// app.HandleDir("/public", "./web/public")
-
-	// // Register default error view
-	// app.OnAnyErrorCode(func(ctx iris.Context) {
-	// 	ctx.ViewData("Message", ctx.Values().GetStringDefault("Message", "Error occured"))
-	// 	ctx.View("shared/error.html")
-	// })
 
 	db, err := database.ConnectMySql()
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
-	userService := services.NewUserService(db)
-	authService := services.NewAuthService(db)
-	// timelineService := services.NewTimelineService(db)
-	// messageService := services.NewMessageService(db)
-
-	// // I cant figure out how to have global DI, when using MVC pattern?
-	// index := mvc.New(app.Party("/"))
-	// index.Register(timelineService)
-	// index.Register(messageService)
-	// index.Register(userService)
-	// index.Handle(new(controllers.IndexController))
-
-	// auth := mvc.New(app.Party("/"))
-	// auth.Register(userService)
-	// auth.Register(authService)
-	// auth.Handle(new(controllers.AuthController))
-
-	// // Setup prometheus for monitoring
-	// var count int64 = 0
-	// var avgFollowers float64 = 0
-	// usersCount := promauto.NewGauge(prometheus.GaugeOpts{
-	// 	Subsystem: "minitwit",
-	// 	Name:      "total_users_count",
-	// 	Help:      "The total amount of users in the database",
-	// })
-	// avgFollowersCount := promauto.NewGauge(prometheus.GaugeOpts{
-	// 	Subsystem: "minitwit",
-	// 	Name:      "average_followers_count",
-	// 	Help:      "The total amount of users in the database",
-	// })
-	// //run non-middleware metrics data collection for in separate thread.
-	// // middleware data is collected in ./middleware/prometheusMiddleware.go
-	// go func() {
-	// 	for {
-	// 		db.Model(&models.User{}).Count(&count)
-	// 		db.Raw("select ((select count(follower_id) from followers) / (select count(*) from users));").Scan(&avgFollowers)
-	// 		usersCount.Set(float64(count))
-	// 		avgFollowersCount.Set(avgFollowers)
-	// 		time.Sleep(60 * time.Second)
-	// 	}
-	// }()
-
-	// app.Get("/metrics", iris.FromStd(promhttp.Handler()))
-
-	// // make sure the latest row is in the database
-	// db.FirstOrCreate(&models.Latest{
-	// 	// id is always 0
-	// 	ID: 0,
-	// })
-	// api := mvc.New(app.Party("/api"))
-	// api.Register(db)
-	// api.Register(timelineService)
-	// api.Register(messageService)
-	// api.Register(userService)
-	// api.Register(authService)
-	// api.Handle(new(controllers.ApiController))
+	userService = *services.NewUserService(db)
+	authService = *services.NewAuthService(db)
+	timelineService = *services.NewTimelineService(db)
+	messageService = *services.NewMessageService(db)
 
 	signer := jwt.NewSigner(jwt.HS256, sigKey, 60*time.Minute)
 
@@ -133,32 +56,28 @@ func main() {
 		return new(UserClaims)
 	})
 
-	app.Post("/api/signup", signupHandler(db, userService, authService))
 	app.Post("/api/signin", signinHandler(signer, db))
 
 	app.Get("/api/tweets", indexHandler(db))
-	app.Post("/api/tweets", storeTweetHandler(db)).Use(authMiddleware)
+	app.Post("/api/tweets", storeTweetHandler()).Use(authMiddleware)
 
 	app.Get("/api/users/{username}", userHandler(db))
 	app.Get("/api/users/{username}/tweets", userTweets(db))
 
-	// app.Get("/api/users/{username}/follow", )
-	app.Post("/api/users/{username}/follow", followHandler(db, userService)).Use(authMiddleware)
-	// app.Post("/api/users/{username}/unfollow", unfollowHandler(db))
+	app.Post("/api/users/{username}/follow", followHandler()).Use(authMiddleware)
+	app.Post("/api/users/{username}/isfollowing", isFollowingHandler()).Use(authMiddleware)
 
-	// protectedAPI := app.Party("/api/protected")
-	// protectedAPI.Use(authMiddleware)
 	app.Get("/api/timeline", timeline(db)).Use(authMiddleware)
+
+	// Simulator endpoints
+	app.Post("/api/msgs/{username}", simulatorStoreTweetHandler())
+	app.Post("/api/register", signupHandler(db))
+	app.Post("/api/fllws/{username}", simulatorFollowHandler())
 
 	app.Listen(":8080")
 }
 
-type Follower struct {
-	User_id     uint `gorm:"primaryKey"` //Following
-	Follower_id uint `gorm:"primaryKey"`
-}
-
-func followHandler(db *gorm.DB, userService *services.UserService) iris.Handler {
+func isFollowingHandler() iris.Handler {
 	return func(ctx iris.Context) {
 		claims := jwt.Get(ctx).(*UserClaims)
 		username := ctx.Params().Get("username")
@@ -168,11 +87,33 @@ func followHandler(db *gorm.DB, userService *services.UserService) iris.Handler 
 		if err != nil {
 			ctx.StatusCode(404)
 			ctx.JSON(iris.Map{"error": "Cant find user"})
+
+			return
+		}
+
+		isFollowing := userService.UserIsFollowing(claims.Id, followee.ID)
+
+		ctx.StatusCode(200)
+		ctx.JSON(iris.Map{"isFollowing": isFollowing})
+
+	}
+}
+
+func followHandler() iris.Handler {
+	return func(ctx iris.Context) {
+		claims := jwt.Get(ctx).(*UserClaims)
+		username := ctx.Params().Get("username")
+
+		followee, err := userService.FindByUsername(username)
+
+		if err != nil {
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "Cant find user"})
+
+			return
 		}
 
 		isFollowingAlready := userService.UserIsFollowing(claims.Id, followee.ID)
-
-		fmt.Println(isFollowingAlready)
 
 		if isFollowingAlready {
 			// Unfollow
@@ -181,6 +122,8 @@ func followHandler(db *gorm.DB, userService *services.UserService) iris.Handler 
 			if err != nil {
 				ctx.StatusCode(400)
 				ctx.JSON(iris.Map{"error": "Cant unfollow user"})
+
+				return
 			}
 		} else {
 			// Follow
@@ -189,10 +132,84 @@ func followHandler(db *gorm.DB, userService *services.UserService) iris.Handler 
 			if err != nil {
 				ctx.StatusCode(400)
 				ctx.JSON(iris.Map{"error": "Cant follow user"})
+
+				return
 			}
 		}
 
 		ctx.StatusCode(200)
+		ctx.JSON(iris.Map{"success": true})
+	}
+}
+
+type FollowUserRequest struct {
+	Follow   string `json:"follow"`
+	Unfollow string `json:"unfollow"`
+}
+
+func simulatorFollowHandler() iris.Handler {
+	return func(ctx iris.Context) {
+		request := FollowUserRequest{}
+		err := ctx.ReadJSON(&request)
+
+		if err != nil {
+			ctx.StatusCode(422)
+			ctx.JSON(iris.Map{"error": err.Error()})
+
+			return
+		}
+
+		username := ""
+
+		if len(request.Follow) != 0 {
+			username = request.Follow
+		} else {
+			username = request.Unfollow
+		}
+
+		auth, authErr := userService.FindByUsername(ctx.Params().Get("username"))
+
+		if authErr != nil {
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "Cant find user"})
+
+			return
+		}
+
+		userToFollow, err := userService.FindByUsername(username)
+
+		if err != nil {
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "Cant find user"})
+
+			return
+		}
+
+		isFollowingAlready := userService.UserIsFollowing(auth.ID, userToFollow.ID)
+
+		if isFollowingAlready {
+			// Unfollow
+			_, err := userService.UnfollowUser(auth.ID, userToFollow.ID)
+
+			if err != nil {
+				ctx.StatusCode(400)
+				ctx.JSON(iris.Map{"error": "Cant unfollow user"})
+
+				return
+			}
+		} else {
+			// Follow
+			_, err := userService.FollowUser(auth.ID, userToFollow.ID)
+
+			if err != nil {
+				ctx.StatusCode(400)
+				ctx.JSON(iris.Map{"error": "Cant follow user"})
+
+				return
+			}
+		}
+
+		ctx.StatusCode(204)
 		ctx.JSON(iris.Map{"success": true})
 	}
 }
@@ -269,10 +286,10 @@ func indexHandler(db *gorm.DB) iris.Handler {
 }
 
 type StoreTweetRequest struct {
-	Text string `json:"text"`
+	Text string `json:"content"`
 }
 
-func storeTweetHandler(db *gorm.DB) iris.Handler {
+func storeTweetHandler() iris.Handler {
 	return func(ctx iris.Context) {
 		tweetRequest := StoreTweetRequest{}
 		err := ctx.ReadJSON(&tweetRequest)
@@ -286,56 +303,86 @@ func storeTweetHandler(db *gorm.DB) iris.Handler {
 
 		claims := jwt.Get(ctx).(*UserClaims)
 
-		message := models.Message{
-			Author_id: int(claims.Id),
-			Text:      tweetRequest.Text,
-			Pub_date:  int(time.Now().Unix()),
-		}
+		fmt.Println(claims.Id, tweetRequest.Text)
 
-		result := db.Create(&message)
+		messageErr := messageService.CreateMessage(int(claims.Id), tweetRequest.Text)
 
-		if result.Error != nil {
+		if messageErr != nil {
 			ctx.StatusCode(422)
-			ctx.JSON(iris.Map{"error": result.Error.Error()})
+			ctx.JSON(iris.Map{"error": messageErr})
 
 			return
 		}
 
-		ctx.StatusCode(200)
+		ctx.StatusCode(204)
 	}
 }
 
-func signupHandler(db *gorm.DB, userService *services.UserService, authService *services.AuthService) iris.Handler {
+func simulatorStoreTweetHandler() iris.Handler {
 	return func(ctx iris.Context) {
-		user := controllers.RegisterUser{}
-		err := ctx.ReadJSON(&user)
+		tweetRequest := StoreTweetRequest{}
+		err := ctx.ReadJSON(&tweetRequest)
 
 		if err != nil {
 			ctx.StatusCode(422)
 			ctx.JSON(iris.Map{"error": err.Error()})
-			// ctx.JSON(err)
-			// ctx.WriteString(err.Error())
+
+			return
+		}
+
+		username := ctx.Params().Get("username")
+
+		user, userErr := userService.FindByUsername(username)
+
+		if userErr != nil {
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "Cant find user"})
+
+			return
+		}
+
+		messageErr := messageService.CreateMessage(int(user.ID), tweetRequest.Text)
+
+		if messageErr != nil {
+			ctx.StatusCode(422)
+			ctx.JSON(iris.Map{"error": messageErr})
+
+			return
+		}
+
+		ctx.StatusCode(204)
+	}
+}
+
+func signupHandler(db *gorm.DB) iris.Handler {
+	return func(ctx iris.Context) {
+		user := controllers.RegisterUser{}
+		err := ctx.ReadJSON(&user)
+
+		errors := make([]string, 0)
+
+		if err != nil {
+			ctx.StatusCode(500)
+			ctx.JSON(iris.Map{"error": err.Error()})
 
 			return
 		}
 
 		if user.Username == "" {
-			ctx.StatusCode(400)
-			ctx.JSON(iris.Map{"status": 400, "error_msg": "you have to enter a username"})
-
-			return
+			errors = append(errors, "You have to enter a username")
 		}
 
 		if user.Email == "" || !strings.Contains(user.Email, "@") {
-			ctx.StatusCode(400)
-			ctx.JSON(iris.Map{"status": 400, "error_msg": "you have to enter a valid email address"})
-
-			return
+			errors = append(errors, "You have to enter a valid email address")
 		}
 
 		if user.Password == "" {
-			ctx.StatusCode(400)
-			ctx.JSON(iris.Map{"status": 400, "error_msg": "you have to enter a password"})
+			errors = append(errors, "You have to enter a password")
+		}
+
+		if len(errors) > 0 {
+			ctx.StatusCode(422)
+			ctx.JSON(iris.Map{"errors": errors})
 
 			return
 		}
@@ -344,7 +391,7 @@ func signupHandler(db *gorm.DB, userService *services.UserService, authService *
 
 		if exists {
 			ctx.StatusCode(400)
-			ctx.JSON(iris.Map{"status": 400, "error_msg": "the username is already taken"})
+			ctx.JSON(iris.Map{"errors": [1]string{"The username is already taken"}})
 
 			return
 		}

@@ -15,16 +15,18 @@ func NewMessageService(db *gorm.DB) *MessageService {
 	return &MessageService{DB: db}
 }
 
-func (s *MessageService) CreateMessage(userId int, text string) (*models.Message, error) {
-	pub_date := int(time.Now().Unix())
+func (s *MessageService) CreateMessage(userId int, text string) error {
 	message := models.Message{
 		Author_id: userId,
 		Text:      text,
-		Pub_date:  pub_date,
+		Pub_date:  int(time.Now().Unix()),
 	}
-	err := s.DB.Create(&message).Error
-	if err == nil {
-		return nil, err
+
+	result := s.DB.Create(&message)
+
+	if result.Error != nil {
+		return result.Error
 	}
-	return &message, nil
+
+	return nil
 }
