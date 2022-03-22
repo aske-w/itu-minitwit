@@ -6,9 +6,14 @@ services:
     platform: linux/x86_64 # Necessary for running on M1 Macs
     container_name: database
     restart: always
+    command: --bind-address=0.0.0.0
     environment:
       - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?err}
+      - MYSQL_USER=${MYSQL_USER:?err}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
+      - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
+      - MYSQL_PORT=${MYSQL_PORT:?err}
     ports:
       - 3306:3306
     volumes:
@@ -20,40 +25,40 @@ services:
     image: grafana/grafana-oss:8.4.3
     container_name: grafana
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - grafana-storage:/var/lib/grafana
 
   prometheus:
-      image: prom/prometheus:v2.24.0
-      user: root
-      volumes:
-        - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      command:
-        - '--config.file=/etc/prometheus/prometheus.yml'
-      ports:
-        - 9090:9090
-      depends_on:
-        - cadvisor
+    image: prom/prometheus:v2.24.0
+    user: root
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    depends_on:
+      - cadvisor
 
   cadvisor:
-      image: google/cadvisor:v0.24.1
-      privileged: true
-      container_name: cadvisor
-      volumes:
-        - /:/rootfs:ro
-        - /var/run/docker.sock:/var/run/docker.sock:rw
-        - /sys:/sys:ro
-        - /var/lib/docker/:/var/lib/docker:ro
-            # - /:/rootfs:ro
-            # - /var/run:/var/run:ro
-            # - /sys:/sys:ro
-            # - /var/lib/docker/:/var/lib/docker:ro
-            # - /dev/disk:/dev/disk/:ro
-      ports:
-        - '8082:8080'
-      depends_on:
-        - db
+    image: google/cadvisor:v0.24.1
+    privileged: true
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+        # - /:/rootfs:ro
+        # - /var/run:/var/run:ro
+        # - /sys:/sys:ro
+        # - /var/lib/docker/:/var/lib/docker:ro
+        # - /dev/disk:/dev/disk/:ro
+    ports:
+      - '8082:8080'
+    depends_on:
+      - db
 
   # server:
   #   # image: ${DOCKER_USERNAME}/minitwitimage

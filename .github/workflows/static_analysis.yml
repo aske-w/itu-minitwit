@@ -36,3 +36,10 @@ jobs:
         working-directory: ./server
         run: |
           ./bin/gosec -exclude=G104 ./...
+
+      - name: Check dependency licenses
+        working-directory: ./server
+        run: |
+          go install github.com/uw-labs/lichen@latest
+          go build -o app main.go 
+          ./bin/lichen --config $GITHUB_WORKSPACE/lichen.yml app
