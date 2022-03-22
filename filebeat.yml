@@ -1,0 +1,37 @@
+filebeat.inputs:
+- type: container
+  paths: 
+    - '/var/lib/docker/containers/*/*.log'
+
+processors:
+- add_docker_metadata:
+    host: "unix:///var/run/docker.sock"
+
+- decode_json_fields:
+    fields: ["message"]
+    target: "json"
+    overwrite_keys: true
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  indices:
+    - index: "filebeat-elastic-%{[agent.version]}-%{+yyyy.MM.dd}"
+      when.or:
+        - equals:
+            container.image.name: docker.elastic.co/beats/filebeat:7.2.0
+        - equals:
+            container.image.name: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+        - equals:
+            container.image.name: docker.elastic.co/kibana/kibana:7.2.0
+    - index: "filebeat-minitwit-%{[agent.version]}-%{+yyyy.MM.dd}"
+      when.or:
+          - equals:
+              container.image.name: ${CONTAINER_PREFIX:?err}/minitwitserver
+    - index: "filebeat-ngix-%{[agent.version]}-%{+yyyy.MM.dd}"
+      when.equals:
+        container.image.name: nginx
+
+logging.json: true
+logging.metrics.enabled: false
+
+
