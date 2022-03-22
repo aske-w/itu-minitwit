@@ -7,6 +7,7 @@ import api from '../api';
 const Profile = (props) => {
     const [user, setUser] = useState(null)
     const [tweets, setTweets] = useState([])
+    const [isFollowing, setIsFollowing] = useState(false)
     const auth = useSelector(state => state.auth)
     const navigate = useNavigate()
     const { username } = useParams()
@@ -30,18 +31,20 @@ const Profile = (props) => {
 
     const handleFollow = (e) => {
         e.preventDefault()
-
-        api.post(`/users/${username}/follow`, { username }).then(() => {})
+        api.post(`/users/${username}/follow`, { username }).then(() => {
+            // if 200 toggle setIsFollowing
+            setIsFollowing(prevValue => !prevValue)
+        })
 
     }
 
-    const isFollowing = () => {
-
-        api.get(`/users/${username}/follow`)
+    const handleIsFollowing = () => {
+        api.get(`/users/${username}/isfollowing`).then(response => setIsFollowing(response.data.success))
     }
 
     useEffect(() => {
         fetchUser()
+        handleIsFollowing()
     }, [])
 
     useEffect(() => {
@@ -67,7 +70,7 @@ const Profile = (props) => {
                         className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         onClick={handleFollow}
                     >
-                        Follow
+                        {isFollowing ? "Unfollow" : "Follow"}
                     </button>
                 }
             </div>
