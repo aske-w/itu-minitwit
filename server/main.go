@@ -425,12 +425,14 @@ func signinHandler(signer *jwt.Signer, db *gorm.DB) iris.Handler {
 			return
 		}
 
+		errors := [1]string{"Invalid username and/or password"}
+
 		user := &models.User{}
 		result := db.First(&user, "username = ?", loginRequest.Username)
 
 		if result.Error != nil {
 			ctx.StatusCode(400)
-			ctx.JSON(iris.Map{"errors": "Invalid username and/or password"})
+			ctx.JSON(iris.Map{"errors": errors})
 
 			return
 		}
@@ -439,7 +441,7 @@ func signinHandler(signer *jwt.Signer, db *gorm.DB) iris.Handler {
 
 		if passwordErr != nil {
 			ctx.StatusCode(400)
-			ctx.JSON(iris.Map{"errors": "Invalid username and/or password"})
+			ctx.JSON(iris.Map{"errors": errors})
 
 			return
 		}
