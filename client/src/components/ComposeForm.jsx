@@ -4,7 +4,7 @@ import api from "../api"
 
 const ComposeForm = ({ callback }) => {
 	const [form, setForm] = useState({
-		text: "",
+		content: "",
 	})
 	const auth = useSelector(state => state.auth)
 
@@ -16,7 +16,7 @@ const ComposeForm = ({ callback }) => {
         e.preventDefault()
 
 		api.post("tweets", form).then(() => {
-			setForm({text: ""})
+			setForm({content: ""})
 
 			callback()
 		})
@@ -26,11 +26,11 @@ const ComposeForm = ({ callback }) => {
 		<form onSubmit={handleSubmit} className="my-4">
 			<textarea
 				rows={3}
-				name="text"
+				name="content"
 				className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
 				placeholder={`What's on your mind, ${auth.user.username}?`}
 				onChange={handleChange}
-				value={form.text}
+				value={form.content}
 			/>
 			<div className="mt-2 flex justify-end">
 				<button
