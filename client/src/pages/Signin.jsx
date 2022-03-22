@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import api from "../api"
 import { login } from '../reducers/auth'
+import { useNavigate } from "react-router-dom";
 import { useDispatch } from 'react-redux'
 
 const Signin = () => {
@@ -9,6 +10,7 @@ const Signin = () => {
         password: "",
     })
 
+	const navigate = useNavigate()
 	const dispatch = useDispatch()
 
     const handleChange = (event) => {
@@ -20,6 +22,8 @@ const Signin = () => {
 
 		api.post("signin", form).then(response => {
 			dispatch(login(response.data))
+
+			navigate("/")
         })
     }
 
