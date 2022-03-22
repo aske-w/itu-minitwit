@@ -56,6 +56,19 @@ func main() {
 		return new(UserClaims)
 	})
 
+	updateLatest := func(params map[string]string) {
+		latest, found := params["latest"]
+
+		if !found {
+			return
+		}
+
+		db.Find(&models.Latest{
+			ID: 0, // id is always 0
+		}).Update("latest", latest)
+	}
+
+	app.Get("api/latest", latestHandler(db))
 	app.Post("/api/signin", signinHandler(signer, db))
 
 	app.Get("/api/tweets", indexHandler(db))
@@ -70,11 +83,23 @@ func main() {
 	app.Get("/api/timeline", timeline(db)).Use(authMiddleware)
 
 	// Simulator endpoints
-	app.Post("/api/msgs/{username}", simulatorStoreTweetHandler())
-	app.Post("/api/register", signupHandler(db))
-	app.Post("/api/fllws/{username}", simulatorFollowHandler())
+	app.Post("/api/msgs/{username}", simulatorStoreTweetHandler(updateLatest))
+	app.Post("/api/register", signupHandler(db, updateLatest))
+	app.Post("/api/fllws/{username}", simulatorFollowHandler(updateLatest))
 
 	app.Listen(":8080")
+}
+
+func latestHandler(db *gorm.DB) iris.Handler {
+	return func(ctx iris.Context) {
+		var latest uint
+
+		db.Model(&models.Latest{
+			ID: 0,
+		}).Select("latest").Limit(1).Scan(&latest)
+
+		ctx.JSON(iris.Map{"latest": latest})
+	}
 }
 
 func isFollowingHandler() iris.Handler {
@@ -147,7 +172,7 @@ type FollowUserRequest struct {
 	Unfollow string `json:"unfollow"`
 }
 
-func simulatorFollowHandler() iris.Handler {
+func simulatorFollowHandler(updateLatest func(map[string]string)) iris.Handler {
 	return func(ctx iris.Context) {
 		request := FollowUserRequest{}
 		err := ctx.ReadJSON(&request)
@@ -208,6 +233,8 @@ func simulatorFollowHandler() iris.Handler {
 				return
 			}
 		}
+
+		updateLatest(ctx.URLParams())
 
 		ctx.StatusCode(204)
 		ctx.JSON(iris.Map{"success": true})
@@ -325,7 +352,7 @@ func storeTweetHandler() iris.Handler {
 	}
 }
 
-func simulatorStoreTweetHandler() iris.Handler {
+func simulatorStoreTweetHandler(updateLatest func(map[string]string)) iris.Handler {
 	return func(ctx iris.Context) {
 		tweetRequest := StoreTweetRequest{}
 		err := ctx.ReadJSON(&tweetRequest)
@@ -357,11 +384,12 @@ func simulatorStoreTweetHandler() iris.Handler {
 			return
 		}
 
+		updateLatest(ctx.URLParams())
 		ctx.StatusCode(204)
 	}
 }
 
-func signupHandler(db *gorm.DB) iris.Handler {
+func signupHandler(db *gorm.DB, updateLatest func(map[string]string)) iris.Handler {
 	return func(ctx iris.Context) {
 		user := controllers.RegisterUser{}
 		err := ctx.ReadJSON(&user)
@@ -406,7 +434,7 @@ func signupHandler(db *gorm.DB) iris.Handler {
 		err = authService.CreateUser(user.Username, user.Email, user.Password)
 
 		if err == nil {
-			// update_latest(c)
+			updateLatest(ctx.URLParams())
 			ctx.StatusCode(204)
 
 			return
