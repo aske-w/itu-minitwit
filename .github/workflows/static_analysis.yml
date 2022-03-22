@@ -42,4 +42,4 @@ jobs:
         run: |
           go install github.com/uw-labs/lichen@latest
           go build -o app main.go 
-          ./bin/lichen --config $GITHUB_WORKSPACE/lichen.yml app
+          ./bin/lichen --config ../lichen.yml app
