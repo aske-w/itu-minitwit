@@ -3,10 +3,13 @@ version: '3.9'
 volumes:
   grafana-storage:
   prometheus_data:
+  elk_elasticsearch_data:
   db_data:
 
 networks:
-  app-network:
+  elk:
+  main:
+    name: itu-minitwit-network
    
 services:
   server:
@@ -21,7 +24,7 @@ services:
     ports:
       - '8080:8080' # docker port : localhost port
     networks:
-      - app-network
+      - main
 
   grafana:
     image: grafana/grafana-oss:8.4.3
@@ -60,3 +63,37 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+
+
+  elasticsearch:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.1'
+    environment:
+      - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
+      - 'discovery.type=single-node'
+    volumes:
+      - elk_elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'
+    networks:
+      - elk
+  kibana:
+    image: 'docker.elastic.co/kibana/kibana:7.17.1'
+    environment:
+      elasticsearch.hosts: '["elasticsearch:9200"]'
+    ports:
+      - '5601:5601'
+    networks:
+      - elk
+
+  filebeat:
+    image: 'docker.elastic.co/beats/filebeat:7.17.1'
+    environment:
+      - 'ELK_USER=${ELK_USER}'
+      - 'CONTAINER_PREFIX=${DOCKER_USERNAME:?err}/minitwitimage'
+    user: root
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - elk
