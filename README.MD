@@ -108,3 +108,31 @@ Reports suspicious constructs in the source code. For example if ```Printf``` fu
 
 ### Gosec Security Scanner
 Scan source code for security problems and reports them. Gosec can be configured to run a set of rules. In our case we run all rules except for G104 ```./bin/gosec -exclude=G104 ./...```. G104 audits errors not checked and since we do not handle all errors, the check will fail. However this should be handled in the future.
+
+## Elasticsearch
+
+If you have issues with the container crashing, increase the container's max memory.
+
+### .htpasswd
+
+Run the script in ```.htpasswd.example``` and replace username with the username used for kibana and PASSWORD with a password
+
+### Kibana
+
+Navigate to port 5601. Under the logs tab type following command to query minitwit-server logs:
+```container.image.name: "itu-minitwit_server"```
+
+### Setup Kibana index pattern
+
+On port 5601 navigate to ```Stack management``` at the bottom of the sidebar. Then check if the index ```itu-minitwit-*``` index has been registered under ```data/Index Management```.
+Under ```Kibana/Index Patterns``` do the following
+
+-```Create new index pattern```.
+
+- Type ```itu-minitwit-*``` as the name.
+
+- Select the ```@timestamp```
+
+Once the index pattern is created navigate ```Analytics/Discover``` in the sidebar. The select the newly created index pattern. 
+
+We can the filter by fields. For example if we only want to see the message of the logs we can under the ```Avaliable fields``` press the plus icon to filter by messages.
