@@ -1,0 +1,21 @@
+version: '3.9'
+volumes:
+  db_data:
+
+services:
+  db:
+    image: mysql:8.0.26
+    platform: linux/x86_64 # Necessary for running on M1 Macs
+    container_name: minitwit-db
+    restart: always
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?err}
+      - MYSQL_USER=${MYSQL_USER:?err}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
+      - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
+      - MYSQL_PORT=${MYSQL_PORT:?err}
+    ports:
+      - 3306:3306
+    volumes:
+      - db_data:/var/lib/mysql

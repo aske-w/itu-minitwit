@@ -1,25 +1,25 @@
 version: '3.9'
-
+networks:
+  elk:
+  main:
+    name: itu-minitwit-network
 services:
-  db:
-    image: mysql:8.0.26
-    platform: linux/x86_64 # Necessary for running on M1 Macs
-    container_name: database
-    restart: always
-    command: --bind-address=0.0.0.0
+  server:
+    image: ${DOCKER_USERNAME}/minitwitimage
     environment:
-      - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?err}
-      - MYSQL_USER=${MYSQL_USER:?err}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
-      - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
-      - MYSQL_PORT=${MYSQL_PORT:?err}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ADDRESS=${MYSQL_ADDRESS}
+      - MYSQL_PORT=${MYSQL_PORT}
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: minitwit
     ports:
-      - 3306:3306
-    volumes:
-      - db_data:/var/lib/mysql
-    # networks:
-    #   - app-network
+      - '8080:8080' # docker port : localhost port
+    networks:
+      - main
 
   grafana:
     image: grafana/grafana-oss:8.4.3
@@ -50,33 +50,43 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-        # - /:/rootfs:ro
-        # - /var/run:/var/run:ro
-        # - /sys:/sys:ro
-        # - /var/lib/docker/:/var/lib/docker:ro
-        # - /dev/disk:/dev/disk/:ro
     ports:
       - '8082:8080'
-    depends_on:
-      - db
 
-  # server:
-  #   # image: ${DOCKER_USERNAME}/minitwitimage
-  #   build: .
-  #   container_name: minitwit
-  #   environment:
-  #     WAIT_HOSTS: db:3306
-  #     WAIT_LOGGER_LEVEL: debug
-  #   ports:
-  #     - '8081:8080' # docker port : localhost port
-  #   depends_on:
-  #     - db
-  #   links:
-  #     - db
-  #   networks:
-  #     - app-network
+  elasticsearch:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.1'
+    environment:
+      - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
+      - 'discovery.type=single-node'
+    volumes:
+      - elk_elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'
+    networks:
+      - elk
 
+  kibana:
+    image: 'docker.elastic.co/kibana/kibana:7.17.1'
+    environment:
+      elasticsearch.hosts: '["elasticsearch:9200"]'
+    ports:
+      - '5601:5601'
+    networks:
+      - elk
+
+  filebeat:
+    image: 'docker.elastic.co/beats/filebeat:7.17.1'
+    environment:
+      - 'ELK_USER=${ELK_USER}'
+      - 'CONTAINER_PREFIX=${DOCKER_USERNAME:?err}/minitwitimage'
+    user: root
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - elk
 volumes:
   grafana-storage:
   prometheus_data:
-  db_data:
+  elk_elasticsearch_data:
