@@ -1,3 +1,26 @@
+# Maintainability and Technical Debt estimation badges
+
+## Sonarqube
+
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
+
+
+## Code Climate
+
+[![Maintainability](https://api.codeclimate.com/v1/badges/305085e64353cb758288/maintainability)](https://codeclimate.com/github/aske-w/itu-minitwit/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/305085e64353cb758288/test_coverage)](https://codeclimate.com/github/aske-w/itu-minitwit/test_coverage)
+
+## Better Code Hub
+
+[![BCH compliance](https://bettercodehub.com/edge/badge/aske-w/itu-minitwit?branch=development)](https://bettercodehub.com/)
+
 # Digital Ocean.
 Floating IP (static ip): `67.207.75.163`
 
