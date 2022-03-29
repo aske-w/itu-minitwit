@@ -57,7 +57,6 @@ jobs:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_USER }}
         port: 22
-        strip_components: 1
         source: "./remote_files/docker-compose.yml"
         target: "vagrant"
 
