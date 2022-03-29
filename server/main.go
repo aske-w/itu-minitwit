@@ -528,7 +528,8 @@ func timeline(db *gorm.DB) iris.Handler {
 		`, claims.Id, claims.Id, 30).Scan(&tweets).Error
 
 		if err != nil {
-
+			ctx.StatusCode(400)
+			ctx.JSON(iris.Map{"error": "Something went wrong..."})
 		}
 
 		services.AddAvatarAndDates(&tweets)
