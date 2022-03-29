@@ -27,6 +27,15 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest . -f Dockerfile
           docker push ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
+
+
+  scan:
+    name: "Scan the container"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Azure/container-scan@v0
+        with:
+          image-name: ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
   
   deploy:
     name: "Deploy to droplet"
