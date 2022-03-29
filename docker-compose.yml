@@ -58,6 +58,8 @@ services:
     environment:
       - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
       - 'discovery.type=single-node'
+      - 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?err}'
+      - 'xpack.security.enabled=true'
     volumes:
       - elk_elasticsearch_data:/usr/share/elasticsearch/data
     ports:
@@ -69,6 +71,8 @@ services:
     image: 'docker.elastic.co/kibana/kibana:7.17.1'
     environment:
       elasticsearch.hosts: '["elasticsearch:9200"]'
+      ELASTICSEARCH_USERNAME: '${ELASTIC_USER:?err}'
+      ELASTICSEARCH_PASSWORD: '${ELASTIC_PASSWORD:?err}'
     ports:
       - '5601:5601'
     networks:
@@ -78,6 +82,8 @@ services:
     image: 'docker.elastic.co/beats/filebeat:7.17.1'
     environment:
       - 'ELK_USER=${ELK_USER}'
+      - 'ELASTIC_USER=${ELASTIC_USER:?err}'
+      - 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?err}'
       - 'CONTAINER_PREFIX=${DOCKER_USERNAME:?err}/minitwitimage'
     user: root
     volumes:

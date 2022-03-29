@@ -5,10 +5,9 @@
 | Metric      | Measurement | Description |
 | ----------- | ----------- | ----- |
 | Total Requests Attemps | TRA |  Is the total number of API request to the service running on port 8080|
-| Failed Requests Attemps | FRA | Is the set of all requests that either does not return, returns an error code or does not return within 120 seconds| 
+| Failed Requests Attemps | FRA | Is the set of all requests that either does not return, returns an error code or does not return within 120 seconds|
 | Availability      | MUT       | Monthley uptime in percentage. Calculated by: ```MUT = (TRA - FRA) / TRA``` |
 If the above criterias are not met, the customer can make a formal issue under Github issues.
-
 
 ## SLA details
 

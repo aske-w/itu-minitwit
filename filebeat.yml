@@ -14,15 +14,15 @@ processors:
 
 output.elasticsearch:
   hosts: ["elasticsearch:9200"]
+  username: ${ELASTIC_USER}
+  password: ${ELASTIC_PASSWORD}
   indices:
     - index: "itu-minitwit-%{[agent.version]}-%{+yyyy.MM.dd}"
       when.or:
         - contains:
-            container.image.name: christiangerdes/minitwitimage
-        - contains:
             container.image.name: itu-minitwit_server
         - contains:
-            container.image.name: ${CONTAINER_PREFIX:?err}/minitwitserver
+            container.image.name: ${CONTAINER_PREFIX:?err}
 
 logging.json: true
 logging.metrics.enabled: false
