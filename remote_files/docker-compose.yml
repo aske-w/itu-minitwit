@@ -28,7 +28,7 @@ services:
 
   client:
     image: ${DOCKER_USERNAME}/minitwit-client
-    container_name: minitwit
+    container_name: minitwit-client
     ports:
       - 4000:80
 
