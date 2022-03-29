@@ -59,7 +59,7 @@ jobs:
         port: 22
         strip_components: 2
         source: "./remote_files/docker-compose.yml"
-        target: "vagrant"
+        target: "/vagrant"
 
   deploy:
     name: "Deploy to droplet"
