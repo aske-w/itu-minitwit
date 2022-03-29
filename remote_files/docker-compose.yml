@@ -16,11 +16,11 @@ services:
     image: ${DOCKER_USERNAME}/minitwitimage
     container_name: minitwit
     environment:
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_ADDRESS=${MYSQL_ADDRESS}
-      - MYSQL_PORT=${MYSQL_PORT}
+      - MYSQL_USER=${MYSQL_USER:?err}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
+      - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
+      - MYSQL_PORT=${MYSQL_PORT:?err}
     ports:
       - '8080:8080' # docker port : localhost port
     networks:
@@ -44,8 +44,8 @@ services:
     depends_on:
       - prometheus
     environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USERNAME}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USERNAME:?err}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?err}
       GF_USERS_ALLOW_SIGN_UP: 0
       GF_AUTH_ANONYMOUS_ENABLED: 1
 
@@ -98,7 +98,7 @@ services:
   filebeat:
     image: 'docker.elastic.co/beats/filebeat:7.17.1'
     environment:
-      - 'ELK_USER=${ELK_USER}'
+      - 'ELK_USER=${ELK_USER:?err}'
       - 'ELASTIC_USER=${ELASTIC_USER:?err}'
       - 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?err}'
       - 'CONTAINER_PREFIX=${DOCKER_USERNAME:?err}/minitwitimage'
