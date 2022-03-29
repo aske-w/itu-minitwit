@@ -13,6 +13,23 @@ require (
 )
 
 require (
+	github.com/ajg/form v1.5.1 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/imkira/go-interpol v1.1.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
+	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
+	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
+	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
+	github.com/yudai/gojsondiff v1.0.0 // indirect
+	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
+	moul.io/http2curl v1.0.0 // indirect
+)
+
+require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
 	github.com/CloudyKit/jet/v6 v6.1.0 // indirect
@@ -38,6 +55,7 @@ require (
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible // indirect
+	github.com/iris-contrib/httpexpect/v2 v2.3.1
 	github.com/iris-contrib/jade v1.1.4 // indirect
 	github.com/iris-contrib/schema v0.0.6 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect

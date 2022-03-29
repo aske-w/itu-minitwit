@@ -32,7 +32,7 @@ var authService services.AuthService
 var timelineService services.TimelineService
 var messageService services.MessageService
 
-func main() {
+func NewApp(mode string) *iris.Application {
 	app := iris.Default()
 
 	environment.InitEnv()
@@ -87,7 +87,12 @@ func main() {
 	app.Post("/api/register", signupHandler(db, updateLatest))
 	app.Post("/api/fllws/{username}", simulatorFollowHandler(updateLatest))
 
-	app.Listen(":8080")
+	return app
+}
+
+func main() {
+	app := NewApp("production")
+	app.Listen("127.0.0.1:8080")
 }
 
 func latestHandler(db *gorm.DB) iris.Handler {
@@ -243,36 +248,22 @@ func simulatorFollowHandler(updateLatest func(map[string]string)) iris.Handler {
 
 func userTweets(db *gorm.DB) iris.Handler {
 	return func(ctx iris.Context) {
-		tweets := []services.Tweet{}
-		err := db.Raw(`
-			SELECT
-				users.id as UserId,
-				users.Username,
-				users.Email,
-				messages.id as Message_id,
-				messages.Author_id,
-				messages.Text,
-				messages.Pub_date,
-				messages.Flagged
-			from users, messages
-			where
-				messages.flagged = 0 and
-				messages.author_id = users.id and
-				(
-					users.username = ?
-				)
-			order by messages.pub_date DESC
-			limit ?
-		`, ctx.Params().Get("username"), 30).Scan(&tweets).Error
+		username := ctx.Params().Get("username")
+		user, err := userService.FindByUsername(username)
+
+		if err != nil {
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "User not found"})
+			return
+		}
+
+		tweets, err := timelineService.GetUserTimeline(int(user.ID))
 
 		if err != nil {
 			ctx.StatusCode(404)
 			ctx.JSON(iris.Map{"error": "Tweets not found"})
-
 			return
 		}
-
-		services.AddAvatarAndDates(&tweets)
 
 		ctx.JSON(tweets)
 	}
@@ -299,14 +290,15 @@ func userHandler(db *gorm.DB) iris.Handler {
 
 func indexHandler(db *gorm.DB) iris.Handler {
 	return func(ctx iris.Context) {
-		tweets := []services.Tweet{}
-		err := db.Model(&models.User{}).Select("users.id as UserId", "users.Username", "users.Email", "messages.id as Message_id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
+
+		tweets, err := timelineService.GetPublicTimeline()
 
 		if err != nil {
-			// return nil, err
-		}
+			ctx.StatusCode(500)
+			ctx.JSON(iris.Map{"error": "Can't get public timeline"})
 
-		services.AddAvatarAndDates(&tweets)
+			return
+		}
 
 		ctx.JSON(tweets)
 	}
@@ -504,34 +496,13 @@ func timeline(db *gorm.DB) iris.Handler {
 	return func(ctx iris.Context) {
 		claims := jwt.Get(ctx).(*UserClaims)
 
-		tweets := []services.Tweet{}
-		err := db.Raw(`
-			SELECT
-				users.id as UserId,
-				users.Username,
-				users.Email,
-				messages.id as Message_id,
-				messages.Author_id,
-				messages.Text,
-				messages.Pub_date,
-				messages.Flagged
-			from users, messages
-			where
-				messages.flagged = 0 and
-				messages.author_id = users.id and
-				(
-					users.id = ? or
-					users.id in (select follower_id from followers where user_id = ?)
-				)
-			order by messages.pub_date DESC
-			limit ?
-		`, claims.Id, claims.Id, 30).Scan(&tweets).Error
+		tweets, err := timelineService.GetPrivateTimeline(int(claims.Id))
 
 		if err != nil {
-
+			ctx.StatusCode(404)
+			ctx.JSON(iris.Map{"error": "Can't find tweets"})
+			return
 		}
-
-		services.AddAvatarAndDates(&tweets)
 
 		ctx.JSON(tweets)
 	}
