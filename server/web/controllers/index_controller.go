@@ -33,35 +33,35 @@ func (c *IndexController) BeforeActivation(b mvc.BeforeActivation) {
 }
 
 func (c *IndexController) UnfollowHandler(username string) mvc.View {
-	userId := c.getUserId()
-	follower, err := c.UserService.FindByUsername(username)
-	if err != nil {
-		return mvc.View{
-			Data: iris.Map{"Message": "User not found"},
-			Code: 404,
-		}
-	}
+	// userId := c.getUserId()
+	// follower, err := c.UserService.FindByUsername(username)
+	// if err != nil {
+	// 	return mvc.View{
+	// 		Data: iris.Map{"Message": "User not found"},
+	// 		Code: 404,
+	// 	}
+	// }
 
-	c.UserService.UnfollowUser(userId, int(follower.ID))
-	c.Ctx.Redirect("/" + username)
+	// c.UserService.UnfollowUser(userId, int(follower.ID))
+	// c.Ctx.Redirect("/" + username)
 	return mvc.View{}
 
 }
 
 func (c *IndexController) FollowHandler(username string) mvc.View {
 	// """Adds the current user as follower of the given user."""
-	userId := c.getUserId()
-	whom, err := c.UserService.FindByUsername(username)
+	// userId := c.getUserId()
+	// whom, err := c.UserService.FindByUsername(username)
 
-	if userId == -1 || err != nil {
-		return mvc.View{
-			Data: iris.Map{"Message": "User not found"},
-			Code: 404,
-		}
-	}
-	c.UserService.FollowUser(userId, int(whom.ID))
+	// if userId == -1 || err != nil {
+	// 	return mvc.View{
+	// 		Data: iris.Map{"Message": "User not found"},
+	// 		Code: 404,
+	// 	}
+	// }
+	// c.UserService.FollowUser(userId, int(whom.ID))
 
-	c.Ctx.Redirect("/" + username)
+	// c.Ctx.Redirect("/" + username)
 	return mvc.View{}
 }
 
@@ -87,34 +87,25 @@ func (c *IndexController) AddMessageHandler() mvc.Result {
 
 func (c *IndexController) UserTimelineHandler(username string) mvc.View {
 
-	profile_user, err := c.UserService.FindByUsername(username)
+	// profile_user, err := c.UserService.FindByUsername(username)
 
-	if err != nil {
-		return mvc.View{
-			Data: iris.Map{"Message": "User not found"},
-			Code: 404,
-		}
-	}
-	var followed bool
-	if c.isLoggedIn() {
+	// if err != nil {
+	// 	return mvc.View{
+	// 		Data: iris.Map{"Message": "User not found"},
+	// 		Code: 404,
+	// 	}
+	// }
+	// var followed bool
+	// if c.isLoggedIn() {
 
-		followed = c.UserService.UserIsFollowing(c.getUserId(), int(profile_user.ID))
+	// 	followed = c.UserService.UserIsFollowing(c.getUserId(), int(profile_user.ID))
 
-	}
-	messages, err := c.TimelineService.GetUserTimeline(int(profile_user.ID))
+	// }
+	// messages, err := c.TimelineService.GetUserTimeline(int(profile_user.ID))
 
-	utils.CheckError(err)
+	// utils.CheckError(err)
 	return mvc.View{
 		Name: "timeline.html",
-		Data: iris.Map{
-			"Title":       profile_user.Username + "'s timeline",
-			"User":        c.getUser(),
-			"LoggedIn":    c.isLoggedIn(),
-			"Messages":    messages,
-			"ProfileUser": profile_user,
-			"Endpoint":    "user_timeline",
-			"Followed":    followed,
-		},
 	}
 }
 

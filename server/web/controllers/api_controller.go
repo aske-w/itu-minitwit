@@ -243,27 +243,27 @@ func (c *ApiController) FollowersPostHandler(username string) {
 	body := FollowRequest{}
 	readBody(c, &body)
 
-	userId, _ := c.UserService.UsernameToId(username)
+	// userId, _ := c.UserService.UsernameToId(username)
 
-	if body.Follow != nil && body.Unfollow == nil {
-		// follow
-		followerId, _ := c.UserService.UsernameToId(*body.Follow)
-		_, err := c.UserService.FollowUser(userId, followerId)
-		if err != nil {
-			c.Ctx.StatusCode(400)
-			c.Ctx.JSON(iris.Map{"status": 400, "error_msg": "Could not follow"})
-			return
-		}
-	} else if body.Follow == nil && body.Unfollow != nil {
-		// un follow
-		followerId, _ := c.UserService.UsernameToId(*body.Unfollow)
-		_, err := c.UserService.FollowUser(userId, followerId)
-		if err != nil {
-			c.Ctx.StatusCode(400)
-			c.Ctx.JSON(iris.Map{"status": 400, "error_msg": "Could not unfollow"})
-			return
-		}
-	}
+	// if body.Follow != nil && body.Unfollow == nil {
+	// 	// follow
+	// 	followerId, _ := c.UserService.UsernameToId(*body.Follow)
+	// 	_, err := c.UserService.FollowUser(userId, followerId)
+	// 	if err != nil {
+	// 		c.Ctx.StatusCode(400)
+	// 		c.Ctx.JSON(iris.Map{"status": 400, "error_msg": "Could not follow"})
+	// 		return
+	// 	}
+	// } else if body.Follow == nil && body.Unfollow != nil {
+	// 	// un follow
+	// 	followerId, _ := c.UserService.UsernameToId(*body.Unfollow)
+	// 	_, err := c.UserService.FollowUser(userId, followerId)
+	// 	if err != nil {
+	// 		c.Ctx.StatusCode(400)
+	// 		c.Ctx.JSON(iris.Map{"status": 400, "error_msg": "Could not unfollow"})
+	// 		return
+	// 	}
+	// }
 	update_latest(c)
 	c.Ctx.StatusCode(204)
 
