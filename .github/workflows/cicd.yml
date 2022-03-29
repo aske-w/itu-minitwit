@@ -33,9 +33,18 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest . -f ./client/Dockerfile
           docker push ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest
 
+  scan:
+    name: "Scan the container"
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Azure/container-scan@v0
+        with:
+          image-name: ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
+
   deploy:
     name: "Deploy to droplet"
-    needs: build
+    needs: scan
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Digital Ocean droplet via SSH action
@@ -52,7 +61,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           port: 22
-          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT
+          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER
 
           script: |
             cd /vagrant
@@ -65,6 +74,26 @@ jobs:
             export MYSQL_PORT=$MYSQL_PORT
             export GRAFANA_ADMIN_USERNAME=$GRAFANA_ADMIN_USERNAME
             export GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
+            export ELK_USER=$ELK_USER
 
             docker-compose pull
             docker-compose up -d
+
+  versioning:
+    name: "Tag and release"
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: major
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}

@@ -4,7 +4,7 @@ Github repository initialized as a non-bare repository from the minitwit files f
 
 ## Which branching model will we use?
 
-We will use the Git Flow branching model. We will have a main branch representing the production code and a development branch from where developers branch out of and merge into, and from where the main branch will pull from. Further, all feature branches will be prepended with "feature/..." and hotfixes with "hotfixes/...". We are not going to use release branches. We will instead create releases through Github.
+We will use the Git Flow branching model. We will have a main branch representing the production code and a development branch from where developers branch out of and merge into, and from where the main branch will pull from. Further, all feature branches will be prepended with "feature/..." and hotfixes with "hotfix/...". We are not going to use release branches. We will instead create releases through Github.
 
 ## Which distributed development workflow will we use?
 

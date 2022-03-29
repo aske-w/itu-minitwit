@@ -1,0 +1,5 @@
+# exceptions for violations
+exceptions:
+  # exceptions for "unresolvable license" type violations
+  unresolvableLicense:
+    - path: "github.com/iris-contrib/schema"
