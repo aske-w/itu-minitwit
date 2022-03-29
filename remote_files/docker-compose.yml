@@ -104,7 +104,7 @@ services:
       - 'CONTAINER_PREFIX=${DOCKER_USERNAME:?err}/minitwitimage'
     user: root
     volumes:
-      - ./filebeat.yml:/usr/share/filebeat/:ro
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker:/var/lib/docker:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
