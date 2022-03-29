@@ -33,17 +33,6 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest . -f ./client/Dockerfile
           docker push ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest
 
-  scan:
-    name: "Scan the container"
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: Azure/container-scan@v0
-        with:
-          image-name: ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
   # scan:
   #   name: "Scan the container"
   #   needs: build
@@ -68,8 +57,9 @@ jobs:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_USER }}
         port: 22
-        source: "remote_files/docker-compose.yml"
-        target: "vagrant"
+        strip_components: 2
+        source: "./remote_files/docker-compose.yml"
+        target: "/vagrant"
 
   deploy:
     name: "Deploy to droplet"
@@ -85,6 +75,11 @@ jobs:
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           MYSQL_ADDRESS: ${{ secrets.MYSQL_ADDRESS }}
           MYSQL_PORT: 25060
+          GRAFANA_ADMIN_USERNAME: ${{ secrets.GRAFANA_ADMIN_USERNAME }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          ELK_USER: ${{ secrets.ELK_USER }}
+          ELASTIC_USER: ${{ secrets.ELASTIC_USER }}
+          ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           host: ${{ secrets.SERVER_IP }}
