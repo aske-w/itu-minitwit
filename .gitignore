@@ -8,4 +8,6 @@ minitwit_dd.pub
 minitwit_dd
 config.monitoring
 server/access.log
+server/itu-minitwit
 .htpasswd
+
