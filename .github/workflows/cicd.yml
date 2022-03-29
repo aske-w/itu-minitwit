@@ -79,8 +79,6 @@ jobs:
           script: |
             cd /vagrant
 
-            rm docker-compose.yml
-
             export DOCKER_USERNAME=$DOCKER_USERNAME
             export MYSQL_USER=$MYSQL_USER
             export MYSQL_DATABASE=$MYSQL_DATABASE
