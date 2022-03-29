@@ -46,7 +46,8 @@ func main() {
 	timelineService = *services.NewTimelineService(db)
 	messageService = *services.NewMessageService(db)
 
-	signer := jwt.NewSigner(jwt.HS256, sigKey, 60*time.Minute)
+	duration := time.Hour * 24 * 30 // 30 days
+	signer := jwt.NewSigner(jwt.HS256, sigKey, duration)
 
 	verifier := jwt.NewVerifier(jwt.HS256, sigKey)
 
