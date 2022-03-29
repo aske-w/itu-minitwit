@@ -1,7 +1,7 @@
 # Stage 1
 FROM node:16 as react-build
 WORKDIR /app
-COPY . ./
+COPY ./client ./
 RUN npm install
 RUN npm run build
 
