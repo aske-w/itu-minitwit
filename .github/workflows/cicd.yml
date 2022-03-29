@@ -68,8 +68,8 @@ jobs:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_USER }}
         port: 22
-        source: "remote_files/docker-compose.yml"
-        target: "vagrant"
+        source: "./remote_files/docker-compose.yml"
+        target: "/vagrant"
 
   deploy:
     name: "Deploy to droplet"
