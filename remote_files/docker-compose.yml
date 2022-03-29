@@ -7,7 +7,7 @@ volumes:
 
 networks:
   app-network:
-   
+
 services:
   server:
     image: ${DOCKER_USERNAME}/minitwitimage
@@ -22,6 +22,12 @@ services:
       - '8080:8080' # docker port : localhost port
     networks:
       - app-network
+
+  client:
+    image: ${DOCKER_USERNAME}/minitwit-client
+    container_name: minitwit
+    ports:
+      - 4000:80
 
   grafana:
     image: grafana/grafana-oss:8.4.3
@@ -50,7 +56,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
       - cadvisor
-      
+
   cadvisor:
     image: google/cadvisor:v0.24.1
     privileged: true
