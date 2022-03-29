@@ -41,7 +41,7 @@ jobs:
   
   copy:
     name: "Copy docker-compose file"
-    needs: scan
+    # needs: scan
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
