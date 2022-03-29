@@ -51,3 +51,13 @@ Severities: Insignificant, Negligible, Marginal, Critical, Catastrophic
 1. Say sorry to the user and fix injections
 1. Give the exposed group member a security course and change all secrets
 1. Restart the server. Put a some DDoS protection in front, like a firewall or a CloudFlare.
+
+## C. Pen-Test Your System
+
+### Try to test for vulnerabilities in your project by using wmap, zaproxy, or any of the tools in the list of OWASP vulnerability scanning tools)
+
+We couldn't find any with wmap
+
+### Fix at least one vulnerability that you find; ideally one that is high in your prioritization cf. to your risk analysis
+
+We couldn't find one.
