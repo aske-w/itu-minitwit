@@ -47,7 +47,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           port: 22
-          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD
+          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER
 
           script: |
             cd /vagrant
@@ -60,6 +60,7 @@ jobs:
             export MYSQL_PORT=$MYSQL_PORT
             export GRAFANA_ADMIN_USERNAME=$GRAFANA_ADMIN_USERNAME
             export GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
+            export ELK_USER=$ELK_USER
 
             docker-compose pull
             docker-compose up -d
