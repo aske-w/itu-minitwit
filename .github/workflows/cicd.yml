@@ -51,6 +51,8 @@ jobs:
       - uses: Azure/container-scan@v0
         with:
           image-name: ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
   
   deploy:
     name: "Deploy to droplet"
