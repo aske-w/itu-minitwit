@@ -14,8 +14,8 @@ processors:
 
 output.elasticsearch:
   hosts: ["elasticsearch:9200"]
-  username: ${ELASTIC_USER}
-  password: ${ELASTIC_PASSWORD}
+  username: ${ELASTIC_USER:?err}
+  password: ${ELASTIC_PASSWORD:?err}
   indices:
     - index: "itu-minitwit-%{[agent.version]}-%{+yyyy.MM.dd}"
       when.or:
