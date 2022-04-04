@@ -58,7 +58,7 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         port: 22
         strip_components: 2
-        source: "./remote_files/docker-compose.yml, ./filebeat/filebeat.yml,./filebeat/kibana.yml"
+        source: "./remote_files/docker-compose.yml, ./filebeat/filebeat.yml"
         target: "/vagrant"
 
   deploy:
@@ -80,14 +80,12 @@ jobs:
           ELK_USER: ${{ secrets.ELK_USER }}
           ELASTIC_USER: ${{ secrets.ELASTIC_USER }}
           ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
-          KIBANA_USER: ${{ secrets.KIBANA_USER }}
-          KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           port: 22
-          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,KIBANA_USER,KIBANA_PASSWORD
+          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_ADDRESS,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD
 
           script: |
             cd /vagrant
@@ -103,8 +101,6 @@ jobs:
             export ELK_USER=$ELK_USER
             export ELASTIC_USER=$ELASTIC_USER
             export ELASTIC_PASSWORD=$ELASTIC_PASSWORD
-            export KIBANA_USER=$KIBANA_USER
-            export KIBANA_PASSWORD=$KIBANA_PASSWORD
 
             docker-compose pull
             docker-compose up -d
