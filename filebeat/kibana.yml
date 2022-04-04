@@ -1,0 +1,2 @@
+elasticsearch.username: ${KIBANA_USER:?err}
+elasticsearch.password: ${KIBANA_PASSWORD:?err}

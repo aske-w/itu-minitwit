@@ -70,6 +70,9 @@ services:
 
   kibana:
     image: 'docker.elastic.co/kibana/kibana:7.17.1'
+    configs:
+      - source: ./kibana.yml
+        target: /usr/share/kibana/config/kibana.yml
     environment:
       elasticsearch.hosts: '["elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: '${ELASTIC_USER:?err}'
