@@ -33,16 +33,18 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest . -f ./client/Dockerfile
           docker push ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest
 
-  scan:
-    name: "Scan the container"
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: Azure/container-scan@v0
-        with:
-          image-name: ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  # Doesnt work ATM, see https://github.com/Azure/container-scan/issues/122
+  # Instead we have set up snyk.io to continuesly monitor our container directly from Docker Hub
+  # scan:
+  #   name: "Scan the container"
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: Azure/container-scan@v0
+  #       with:
+  #         image-name: ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
 
   copy:
     name: "Copy docker-compose file"
