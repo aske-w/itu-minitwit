@@ -37,7 +37,7 @@ func NewApp(mode string) *iris.Application {
 
 	environment.InitEnv()
 
-	db, err := database.ConnectMySql()
+	db, err := database.ConnectMySql(mode)
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
