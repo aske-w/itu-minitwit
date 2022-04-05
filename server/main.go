@@ -452,9 +452,11 @@ func signupHandler(db *gorm.DB, updateLatest func(map[string]string)) iris.Handl
 			return
 		}
 
-		_, createErr := authService.CreateUser(user.Username, user.Email, user.Password)
+		createdUser, createErr := authService.CreateUser(user.Username, user.Email, user.Password)
 
-		if err == nil || createErr != nil {
+		if err == nil || createErr == nil {
+			userService.FollowUser(createdUser.ID, createdUser.ID)
+
 			updateLatest(ctx.URLParams())
 			ctx.StatusCode(204)
 
