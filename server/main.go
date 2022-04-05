@@ -46,7 +46,8 @@ func NewApp(mode string) *iris.Application {
 	timelineService = *services.NewTimelineService(db)
 	messageService = *services.NewMessageService(db)
 
-	signer := jwt.NewSigner(jwt.HS256, sigKey, 60*time.Minute)
+	duration := time.Hour * 24 * 30 // 30 days
+	signer := jwt.NewSigner(jwt.HS256, sigKey, duration)
 
 	verifier := jwt.NewVerifier(jwt.HS256, sigKey)
 
@@ -200,19 +201,32 @@ func simulatorFollowHandler(updateLatest func(map[string]string)) iris.Handler {
 		auth, authErr := userService.FindByUsername(ctx.Params().Get("username"))
 
 		if authErr != nil {
-			ctx.StatusCode(404)
-			ctx.JSON(iris.Map{"error": "Cant find user"})
+			email := fmt.Sprintf("%s@email.com", ctx.Params().Get("username"))
+			password := fmt.Sprintf("%s:%s", email, ctx.Params().Get("username"))
 
-			return
+			createdUser, createErr := authService.CreateUser(ctx.Params().Get("username"), email, password)
+			if createErr != nil {
+				ctx.StatusCode(404)
+				ctx.JSON(iris.Map{"error": "Cant find user"})
+				return
+			}
+			auth = createdUser
 		}
 
 		userToFollow, err := userService.FindByUsername(username)
 
 		if err != nil {
-			ctx.StatusCode(404)
-			ctx.JSON(iris.Map{"error": "Cant find user"})
 
-			return
+			email := fmt.Sprintf("%s@email.com", username)
+			password := fmt.Sprintf("%s:%s", email, username)
+
+			createdUser, createErr := authService.CreateUser(username, email, password)
+			if createErr != nil {
+				ctx.StatusCode(404)
+				ctx.JSON(iris.Map{"error": "Cant find user"})
+				return
+			}
+			userToFollow = createdUser
 		}
 
 		isFollowingAlready := userService.UserIsFollowing(auth.ID, userToFollow.ID)
@@ -242,7 +256,7 @@ func simulatorFollowHandler(updateLatest func(map[string]string)) iris.Handler {
 		updateLatest(ctx.URLParams())
 
 		ctx.StatusCode(204)
-		ctx.JSON(iris.Map{"success": true})
+
 	}
 }
 
@@ -361,10 +375,17 @@ func simulatorStoreTweetHandler(updateLatest func(map[string]string)) iris.Handl
 		user, userErr := userService.FindByUsername(username)
 
 		if userErr != nil {
-			ctx.StatusCode(404)
-			ctx.JSON(iris.Map{"error": "Cant find user"})
+			email := fmt.Sprintf("%s@email.com", username)
+			password := fmt.Sprintf("%s:%s", email, username)
 
-			return
+			createdUser, createErr := authService.CreateUser(username, email, password)
+			if createErr != nil {
+				ctx.StatusCode(404)
+				ctx.JSON(iris.Map{"error": "Cant find user"})
+				return
+			}
+			user = createdUser
+
 		}
 
 		messageErr := messageService.CreateMessage(int(user.ID), tweetRequest.Text)
@@ -423,9 +444,9 @@ func signupHandler(db *gorm.DB, updateLatest func(map[string]string)) iris.Handl
 			return
 		}
 
-		err = authService.CreateUser(user.Username, user.Email, user.Password)
+		_, createErr := authService.CreateUser(user.Username, user.Email, user.Password)
 
-		if err == nil {
+		if err == nil || createErr != nil {
 			updateLatest(ctx.URLParams())
 			ctx.StatusCode(204)
 
@@ -499,9 +520,8 @@ func timeline(db *gorm.DB) iris.Handler {
 		tweets, err := timelineService.GetPrivateTimeline(int(claims.Id))
 
 		if err != nil {
-			ctx.StatusCode(404)
-			ctx.JSON(iris.Map{"error": "Can't find tweets"})
-			return
+			ctx.StatusCode(400)
+			ctx.JSON(iris.Map{"error": "Something went wrong..."})
 		}
 
 		ctx.JSON(tweets)

@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const client = axios.create({
+const api = axios.create({
   baseURL: process.env.REACT_APP_BASE_URL,
 });
 
-client.interceptors.request.use((config) => {
+api.interceptors.request.use((config) => {
   const auth = JSON.parse(localStorage.getItem("user"));
 
   if (auth) {
@@ -14,4 +14,5 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-export default client;
+
+export default api;

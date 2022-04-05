@@ -22,7 +22,7 @@ services:
       - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
       - MYSQL_PORT=${MYSQL_PORT:?err}
     ports:
-      - '8080:8080' # docker port : localhost port
+      - 8080:8080 # host port : container port
     networks:
       - main
 
@@ -30,7 +30,7 @@ services:
     image: ${DOCKER_USERNAME}/minitwit-client
     container_name: minitwit-client
     ports:
-      - 4000:80
+      - 80:80
 
   grafana:
     image: grafana/grafana-oss:8.4.3
@@ -104,7 +104,7 @@ services:
       - 'CONTAINER_PREFIX=${DOCKER_USERNAME:?err}/minitwitimage'
     user: root
     volumes:
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker:/var/lib/docker:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
