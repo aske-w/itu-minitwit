@@ -178,3 +178,18 @@ Under `Kibana/Index Patterns` do the following
 Once the index pattern is created navigate `Analytics/Discover` in the sidebar. The select the newly created index pattern.
 
 We can the filter by fields. For example if we only want to see the message of the logs we can under the `Avaliable fields` press the plus icon to filter by messages.
+
+
+## Docker swarm 
+
+### manager
+username: manager
+password: 
+
+### worker1
+username: worker1
+password: 
+
+### worker2
+username: worker2
+password: 
