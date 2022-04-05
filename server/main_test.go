@@ -12,40 +12,15 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-// func postMessage(e *httptest.Expect, text string) *httpexpect.Request {
-// 	return e.POST("/add_message").WithFormField("text", text).WithHeader("Content-Type", "application/x-www-form-urlencoded")
-// }
-
-// func follow(e *httptest.Expect, username string) *httpexpect.Request {
-// 	return e.GET("/" + username + "/follow")
-// }
-
-// func unfollow(e *httptest.Expect, username string) *httpexpect.Request {
-// 	return e.GET("/" + username + "/unfollow")
-// }
-
-// func getTimeLine(e *httptest.Expect, username string) *httpexpect.Request {
-// 	return e.GET("/" + username)
-// }
-
-// func getCookie(cookies []*http.Cookie, name string) *string {
-// 	for _, c := range cookies {
-// 		if c.Name == name {
-// 			return &c.Value
-// 		}
-// 	}
-// 	return nil
-// }
-
 func TestRegister(t *testing.T) {
 	app := NewApp("development")
 
 	e := httptest.New(t, app)
 
 	form := map[string]interface{}{
-		"username": "user2",
+		"username": "user1",
 		"password": "123123",
-		"email":    "user2@gmail.com",
+		"email":    "user1@gmail.com",
 	}
 
 	e.POST("/api/register").WithJSON(form).Expect().Status(httptest.StatusNoContent)
@@ -56,7 +31,7 @@ func TestSignin(t *testing.T) {
 	e := httptest.New(t, app)
 
 	form := map[string]interface{}{
-		"username": "user2",
+		"username": "user1",
 		"password": "123123",
 	}
 
@@ -80,7 +55,7 @@ func TestRegisterAndSignin(t *testing.T) {
 		"password": "123123",
 	}
 
-	e.POST("/api/signin").WithJSON(form2).Expect().Status(httptest.StatusNoContent)
+	e.POST("/api/signin").WithJSON(form2).Expect().Status(httptest.StatusOK)
 }
 
 func TestRegisterAndSigninAndPostMessage(t *testing.T) {
@@ -89,15 +64,15 @@ func TestRegisterAndSigninAndPostMessage(t *testing.T) {
 
 	// Register
 	form := map[string]interface{}{
-		"username": "user4",
+		"username": "user3",
 		"password": "123123",
-		"email":    "user4@gmail.com",
+		"email":    "user3@gmail.com",
 	}
 	e.POST("/api/register").WithJSON(form).Expect().Status(httptest.StatusNoContent)
 
 	//Sign in
 	form2 := map[string]interface{}{
-		"username": "user4",
+		"username": "user3",
 		"password": "123123",
 	}
 
@@ -116,20 +91,20 @@ func TestFollowAndUnfollow(t *testing.T) {
 	e := httptest.New(t, app)
 
 	userFollowingForm := map[string]interface{}{
-		"username": "user15",
-		"email":    "user15@email.com",
+		"username": "user4",
+		"email":    "user4@email.com",
 		"password": "123123",
 	}
 
 	userToFollowForm := map[string]interface{}{
-		"username": "user16",
-		"email":    "user16@email.com",
+		"username": "user5",
+		"email":    "user5@email.com",
 		"password": "123123",
 	}
 
 	userFollowingSigninForm := map[string]interface{}{
-		"username": "user15",
-		"password": "123123",
+		"username": userFollowingForm["username"],
+		"password": userFollowingForm["password"],
 	}
 
 	e.POST("/api/register").WithJSON(userFollowingForm).Expect().Status(httptest.StatusNoContent)
@@ -149,4 +124,122 @@ func TestFollowAndUnfollow(t *testing.T) {
 	//User unfollows
 	e.POST("/api/users/"+username+"/follow").WithHeader("Authorization", "Bearer "+token).Expect().Status(httptest.StatusOK)
 	e.GET("/api/users/"+username+"/isfollowing").WithHeader("Authorization", "Bearer "+token).Expect().Status(httptest.StatusOK).JSON().Object().ValueEqual("isFollowing", false)
+}
+
+//Public timeline
+func TestPublicTimeline(t *testing.T) {
+	app := NewApp("development")
+	e := httptest.New(t, app)
+
+	//Register user1
+	user6 := map[string]interface{}{
+		"username": "user6",
+		"email":    "user6@email.com",
+		"password": "123123",
+	}
+	e.POST("/api/register").WithJSON(user6).Expect().Status(httptest.StatusNoContent)
+	//Register user2
+	user7 := map[string]interface{}{
+		"username": "user7",
+		"email":    "user7@email.com",
+		"password": "123123",
+	}
+	e.POST("/api/register").WithJSON(user7).Expect().Status(httptest.StatusNoContent)
+
+	//User6 posts message1
+	user6Token := e.POST("/api/signin").WithJSON(user6).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
+
+	message1 := map[string]interface{}{
+		"content": "Message1",
+	}
+	e.POST("/api/tweets").WithJSON(message1).WithHeader("Authorization", "Bearer "+user6Token).Expect().Status(httptest.StatusNoContent)
+
+	//User7 posts message2
+	user7Token := e.POST("/api/signin").WithJSON(user7).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
+
+	message2 := map[string]interface{}{
+		"content": "Message2",
+	}
+	e.POST("/api/tweets").WithJSON(message2).WithHeader("Authorization", "Bearer "+user7Token).Expect().Status(httptest.StatusNoContent)
+
+	//User6 posts message3
+	message3 := map[string]interface{}{
+		"content": "Message3",
+	}
+	e.POST("/api/tweets").WithJSON(message3).WithHeader("Authorization", "Bearer "+user6Token).Expect().Status(httptest.StatusNoContent)
+
+	//Check if messages are in public timeline
+	tweets := e.GET("/api/tweets").Expect().JSON().Array()
+
+	// Check ordering
+	tweets.Element(0).Object().ValueEqual("Text", message3["content"])
+	tweets.Element(1).Object().ValueEqual("Text", message2["content"])
+	tweets.Element(2).Object().ValueEqual("Text", message1["content"])
+}
+
+//Private timeline
+func TestPrivateTimeline(t *testing.T) {
+	app := NewApp("development")
+	e := httptest.New(t, app)
+
+	// Register user 1
+	user1 := map[string]interface{}{
+		"username": "user11",
+		"email":    "user11@email.com",
+		"password": "123123",
+	}
+
+	e.POST("/api/register").WithJSON(user1).Expect().Status(httptest.StatusNoContent)
+
+	// register user 2
+	user2 := map[string]interface{}{
+		"username": "user21",
+		"email":    "user21@email.com",
+		"password": "123123",
+	}
+
+	e.POST("/api/register").WithJSON(user2).Expect().Status(httptest.StatusNoContent)
+
+	//Sign in to user 1 to grab bearer token
+	signedInUser1 := map[string]interface{}{
+		"username": user1["username"],
+		"password": user1["password"],
+	}
+
+	user1token := e.POST("/api/signin").WithJSON(signedInUser1).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
+
+	//Sign in to user 1 to grab bearer token
+	signedInUser2 := map[string]interface{}{
+		"username": user2["username"],
+		"password": user2["password"],
+	}
+
+	user2token := e.POST("/api/signin").WithJSON(signedInUser2).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
+
+	// user 1 follow user 2
+	username2 := user2["username"].(string)
+
+	//Intially user does not follow
+	e.GET("/api/users/"+username2+"/isfollowing").WithHeader("Authorization", "Bearer "+user1token).Expect().Status(httptest.StatusOK).JSON().Object().ValueEqual("isFollowing", false)
+
+	//User follows
+	e.POST("/api/users/"+username2+"/follow").WithHeader("Authorization", "Bearer "+user1token).Expect().Status(httptest.StatusOK)
+	e.GET("/api/users/"+username2+"/isfollowing").WithHeader("Authorization", "Bearer "+user1token).Expect().Status(httptest.StatusOK).JSON().Object().ValueEqual("isFollowing", true)
+
+	// user 1 posts msg
+	message1 := map[string]interface{}{
+		"content": "Message from user1",
+	}
+	e.POST("/api/tweets").WithJSON(message1).WithHeader("Authorization", "Bearer "+user1token).Expect().Status(httptest.StatusNoContent)
+
+	// user 2 posts msg
+	message2 := map[string]interface{}{
+		"content": "Message from user2",
+	}
+	e.POST("/api/tweets").WithJSON(message2).WithHeader("Authorization", "Bearer "+user2token).Expect().Status(httptest.StatusNoContent)
+
+	// user 1 checks private timeline to find the msgs
+	tweets := e.GET("/api/timeline").WithHeader("Authorization", "Bearer "+user1token).Expect().JSON().Array()
+	tweets.Element(0).Object().ValueEqual("Text", message2["content"])
+	tweets.Element(1).Object().ValueEqual("Text", message1["content"])
 }
