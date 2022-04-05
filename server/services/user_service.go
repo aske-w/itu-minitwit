@@ -58,9 +58,7 @@ func (s *UserService) FindByUsername(username string) (*models.User, error) {
 
 	user := &models.User{}
 	err := s.DB.First(&user, "username = ?", username).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return user, nil

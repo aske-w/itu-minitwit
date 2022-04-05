@@ -370,10 +370,17 @@ func simulatorStoreTweetHandler(updateLatest func(map[string]string)) iris.Handl
 		user, userErr := userService.FindByUsername(username)
 
 		if userErr != nil {
-			ctx.StatusCode(404)
-			ctx.JSON(iris.Map{"error": "Cant find user"})
+			email := fmt.Sprintf("%s@email.com", username)
+			password := fmt.Sprintf("%s:%s", email, username)
 
-			return
+			createdUser, createErr := authService.CreateUser(username, email, password)
+			if createErr != nil {
+				ctx.StatusCode(404)
+				ctx.JSON(iris.Map{"error": "Cant find user"})
+				return
+			}
+			user = createdUser
+
 		}
 
 		messageErr := messageService.CreateMessage(int(user.ID), tweetRequest.Text)
@@ -432,9 +439,9 @@ func signupHandler(db *gorm.DB, updateLatest func(map[string]string)) iris.Handl
 			return
 		}
 
-		err = authService.CreateUser(user.Username, user.Email, user.Password)
+		_, createErr := authService.CreateUser(user.Username, user.Email, user.Password)
 
-		if err == nil {
+		if err == nil || createErr != nil {
 			updateLatest(ctx.URLParams())
 			ctx.StatusCode(204)
 
