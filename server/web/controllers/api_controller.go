@@ -122,8 +122,9 @@ func (c *ApiController) RegisterHandler() {
 		if exists {
 			err = fmt.Errorf("the username is already taken")
 		} else {
-			err = c.AuthService.CreateUser(username, email, password)
+			_, err = c.AuthService.CreateUser(username, email, password)
 			if err == nil {
+
 				update_latest(c)
 				c.Ctx.StatusCode(204)
 				return

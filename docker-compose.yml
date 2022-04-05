@@ -4,22 +4,22 @@ networks:
   main:
     name: itu-minitwit-network
 services:
-  server:
-    image: ${DOCKER_USERNAME}/minitwitimage
-    environment:
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_ADDRESS=${MYSQL_ADDRESS}
-      - MYSQL_PORT=${MYSQL_PORT}
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    container_name: minitwit
-    ports:
-      - '8080:8080' # docker port : localhost port
-    networks:
-      - main
+  # server:
+  #   image: ${DOCKER_USERNAME}/minitwitimage
+  #   environment:
+  #     - MYSQL_USER=${MYSQL_USER}
+  #     - MYSQL_DATABASE=${MYSQL_DATABASE}
+  #     - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+  #     - MYSQL_ADDRESS=${MYSQL_ADDRESS}
+  #     - MYSQL_PORT=${MYSQL_PORT}
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile
+  #   container_name: minitwit
+  #   ports:
+  #     - '8080:8080' # docker port : localhost port
+  #   networks:
+  #     - main
 
   grafana:
     image: grafana/grafana-oss:8.4.3
@@ -42,7 +42,7 @@ services:
       - cadvisor
 
   cadvisor:
-    image: google/cadvisor:v0.24.1
+    image: gcr.io/cadvisor/cadvisor
     privileged: true
     container_name: cadvisor
     volumes:
@@ -91,7 +91,7 @@ services:
       - 'CONTAINER_PREFIX=${DOCKER_USERNAME:?err}/minitwitimage'
     user: root
     volumes:
-      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker:/var/lib/docker:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
