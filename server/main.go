@@ -530,25 +530,21 @@ func timeline(db *gorm.DB) iris.Handler {
 		tweets := []services.Tweet{}
 		err := db.Raw(`
 			SELECT
-				users.id as UserId,
-				users.Username,
-				users.Email,
-				messages.id as Message_id,
+				messages.id AS Message_id,
 				messages.Author_id,
 				messages.Text,
 				messages.Pub_date,
-				messages.Flagged
-			from users, messages
-			where
-				messages.flagged = 0 and
-				messages.author_id = users.id and
-				(
-					users.id = ? or
-					users.id in (select follower_id from followers where user_id = ?)
-				)
-			order by messages.pub_date DESC
-			limit ?
-		`, claims.Id, claims.Id, 30).Scan(&tweets).Error
+				messages.Flagged,
+				users.id AS UserId,
+				users.Username,
+				users.Email
+			FROM followers
+			JOIN messages ON followers.follower_id = messages.author_id
+			JOIN users ON followers.follower_id = users.id
+			WHERE user_id = ? AND flagged = 0
+			ORDER BY messages.pub_date DESC
+			LIMIT ?
+		`, claims.Id, 30).Scan(&tweets).Error
 
 		if err != nil {
 			ctx.StatusCode(400)
