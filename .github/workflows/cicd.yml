@@ -70,7 +70,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.4
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_USER: ${{ secrets.XMYSQL_USER }}
           MYSQL_DATABASE: ${{ secrets.XMYSQL_DATABASE }}
           MYSQL_PASSWORD: ${{ secrets.XMYSQL_PASSWORD }}
           MYSQL_ADDRESS: ${{ secrets.XMYSQL_ADDRESS }}
