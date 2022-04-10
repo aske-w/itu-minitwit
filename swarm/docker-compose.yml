@@ -47,6 +47,8 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?err}
       GF_USERS_ALLOW_SIGN_UP: 0
       GF_AUTH_ANONYMOUS_ENABLED: 1
+    networks:
+      - main
 
   prometheus:
     image: prom/prometheus:v2.24.0
@@ -58,6 +60,8 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
       - cadvisor
+    networks:
+      - main
 
   cadvisor:
     image: google/cadvisor:v0.24.1
@@ -68,6 +72,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - main
 
   elasticsearch:
     image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.1'
