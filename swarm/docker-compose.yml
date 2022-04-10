@@ -1,0 +1,112 @@
+version: "3.8"
+volumes:
+  grafana-storage:
+  prometheus_data:
+  elk_elasticsearch_data:
+  db_data:
+
+networks:
+  elk:
+  main:
+    name: itu-minitwit-network
+
+services:
+  # server:
+  #   image: ${DOCKER_USERNAME}/minitwitimage
+  #   container_name: minitwit
+  #   environment:
+  #     - MYSQL_USER=${MYSQL_USER:?err}
+  #     - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
+  #     - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
+  #     - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
+  #     - MYSQL_PORT=${MYSQL_PORT:?err}
+  #   ports:
+  #     - 8080:8080 # host port : container port
+  #   networks:
+  #     - main
+
+  client:
+    image: ${DOCKER_USERNAME}/minitwit-client
+    container_name: minitwit-client
+    ports:
+      - 80:80
+
+  grafana:
+    image: grafana/grafana-oss:8.4.3
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    restart: always
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USERNAME:?err}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?err}
+      GF_USERS_ALLOW_SIGN_UP: 0
+      GF_AUTH_ANONYMOUS_ENABLED: 1
+
+  prometheus:
+    image: prom/prometheus:v2.24.0
+    container_name: prometheus
+    user: root
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - cadvisor
+
+  cadvisor:
+    image: google/cadvisor:v0.24.1
+    privileged: true
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+
+  elasticsearch:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.1'
+    environment:
+      - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
+      - 'discovery.type=single-node'
+      - 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?err}'
+      - 'ELASTIC_USERNAME=${ELASTIC_USER:?err}'
+      - 'xpack.security.enabled=true'
+      - 'network.host=0.0.0.0'
+    volumes:
+      - elk_elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'
+    networks:
+      - elk
+  kibana:
+    image: 'docker.elastic.co/kibana/kibana:7.17.1'
+    environment:
+      elasticsearch.hosts: '["elasticsearch:9200"]'
+      ELASTICSEARCH_USERNAME: '${ELASTIC_USER:?err}'
+      ELASTICSEARCH_PASSWORD: '${ELASTIC_PASSWORD:?err}'
+    ports:
+      - '5601:5601'
+    networks:
+      - elk
+
+  filebeat:
+    image: 'docker.elastic.co/beats/filebeat:7.17.1'
+    environment:
+      - 'ELK_USER=${ELK_USER:?err}'
+      - 'ELASTIC_USER=${ELASTIC_USER:?err}'
+      - 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?err}'
+      - 'CONTAINER_PREFIX=${DOCKER_USERNAME:?err}/minitwitimage'
+    user: root
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - elk

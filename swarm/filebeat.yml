@@ -1,0 +1,30 @@
+filebeat.inputs:
+- type: container
+  paths: 
+    - '/var/lib/docker/containers/*/*.log'
+
+processors:
+- add_docker_metadata:
+    host: "unix:///var/run/docker.sock"
+
+- decode_json_fields:
+    fields: ["message"]
+    target: "json"
+    overwrite_keys: true
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  username: ${ELASTIC_USER}
+  password: ${ELASTIC_PASSWORD}
+  indices:
+    - index: "itu-minitwit-%{[agent.version]}-%{+yyyy.MM.dd}"
+      when.or:
+        - contains:
+            container.image.name: itu-minitwit_server
+        - contains:
+            container.image.name: ${CONTAINER_PREFIX:?err}
+
+logging.json: true
+logging.metrics.enabled: false
+
+
