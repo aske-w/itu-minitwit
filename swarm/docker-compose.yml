@@ -81,7 +81,7 @@ services:
       - 'network.host=0.0.0.0'
     volumes:
       - elk_elasticsearch_data:/usr/share/elasticsearch/data
-    ports:
+    # ports:
       # - '9200:9200'
     networks:
       - elk
