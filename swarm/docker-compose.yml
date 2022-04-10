@@ -55,9 +55,10 @@ services:
     container_name: prometheus
     user: root
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - ./prometheus/:/etc/prometheus/
+      # - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    # command:
+    #   - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
       - cadvisor
     networks:
