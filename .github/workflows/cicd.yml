@@ -108,7 +108,10 @@ jobs:
             export ACCESS_KEY=$ACCESS_KEY
             export SECRET_KEY=$SECRET_KEY
             export BUCKET_NAME=$BUCKET_NAME
-
+            
+            whoami
+            chown root filebeat.yml
+            chmod go-w filebeat.yml
 
             docker-compose pull
             docker stack deploy --compose-file docker-compose.yml $STACK_NAME
