@@ -21,6 +21,6 @@ scrape_configs:
   - job_name: 'webserver'
     dns_sd_configs:
     - names:
-      - 'tasks.minitwit'
+      - 'tasks.server'
       type: 'A'
       port: 8080
