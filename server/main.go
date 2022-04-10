@@ -3,6 +3,7 @@ package main
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/environment"
+	"aske-w/itu-minitwit/middleware"
 	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/controllers"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/jwt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -68,6 +71,34 @@ func main() {
 			ID: 0, // id is always 0
 		}).Update("latest", latest)
 	}
+
+	// Setup prometheus for monitoring
+	var count int64 = 0
+	var avgFollowers float64 = 0
+	usersCount := promauto.NewGauge(prometheus.GaugeOpts{
+		Subsystem: "minitwit",
+		Name:      "total_users_count",
+		Help:      "The total amount of users in the database",
+	})
+	avgFollowersCount := promauto.NewGauge(prometheus.GaugeOpts{
+		Subsystem: "minitwit",
+		Name:      "average_followers_count",
+		Help:      "The total amount of users in the database",
+	})
+	//run non-middleware metrics data collection for in separate thread.
+	// middleware data is collected in ./middleware/prometheusMiddleware.go
+	go func() {
+		for {
+			db.Model(&models.User{}).Count(&count)
+			db.Raw("select ((select count(follower_id) from followers) / (select count(*) from users));").Scan(&avgFollowers)
+			usersCount.Set(float64(count))
+			avgFollowersCount.Set(avgFollowers)
+			time.Sleep(60 * time.Second)
+		}
+	}()
+
+	// Register middleware
+	app.Use(middleware.InitMiddleware)
 
 	app.Get("api/latest", latestHandler(db))
 	app.Post("/api/signin", signinHandler(signer, db))
