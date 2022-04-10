@@ -9,6 +9,8 @@ networks:
   elk:
   main:
     name: itu-minitwit-network
+  monitoring:
+    driver: overlay
 
 services:
   server:
@@ -24,6 +26,7 @@ services:
       - 8080:8080 # host port : container port
     networks:
       - main
+      - monitoring
 
   client:
     image: ${DOCKER_USERNAME}/minitwit-client
@@ -63,6 +66,7 @@ services:
       - cadvisor
     networks:
       - main
+      - monitoring
     ports:
       - "9090:9090"
 
