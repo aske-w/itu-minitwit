@@ -9,7 +9,7 @@ networks:
   elk:
   main:
     name: itu-minitwit-network
-  monitoring:
+  monitoring: # network for prometheus to scrape in a swarm
     driver: overlay
 
 services:
@@ -59,9 +59,6 @@ services:
     user: root
     volumes:
       - ./prometheus/:/etc/prometheus/
-      # - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    # command:
-    #   - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
       - cadvisor
     networks:
@@ -70,19 +67,19 @@ services:
     ports:
       - "9090:9090"
 
-  # cadvisor:
-  #   image: google/cadvisor:v0.24.1
-  #   privileged: true
-  #   container_name: cadvisor
-  #   volumes:
-  #     - /:/rootfs:ro
-  #     - /var/run/docker.sock:/var/run/docker.sock:rw
-  #     - /sys:/sys:ro
-  #     - /var/lib/docker/:/var/lib/docker:ro
-  #   ports: 
-  #     - "8081:8080"
-  #   networks:
-  #     - main
+  cadvisor:
+    image: google/cadvisor:v0.24.1
+    privileged: true
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports: 
+      - "8081:8080"
+    networks:
+      - monitoring
 
   elasticsearch:
     image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.1'
