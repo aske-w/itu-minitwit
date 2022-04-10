@@ -58,7 +58,7 @@ jobs:
         username: ${{ secrets.XSERVER_USER }}
         port: 22
         strip_components: 2
-        source: "./swarm/docker-compose.yml, ./swarm/filebeat.yml, ./swarm/grafana/, ./swarm/prometheus/, ./swarm/manager_provision.sh, ./swarm/worker_provision.sh"
+        source: "./swarm/docker-compose.yml, ./swarm/filebeat.yml, ./swarm/grafana/, ./swarm/prometheus/"
         target: "/root"
 
   deploy:
@@ -72,30 +72,28 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          MYSQL_ADDRESS: ${{ secrets.MYSQL_ADDRESS }}
+          MYSQL_PASSWORD: ${{ secrets.XMYSQL_PASSWORD }}
+          MYSQL_ADDRESS: ${{ secrets.XMYSQL_ADDRESS }}
           MYSQL_PORT: 25060
           GRAFANA_ADMIN_USERNAME: ${{ secrets.GRAFANA_ADMIN_USERNAME }}
           GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
           ELK_USER: ${{ secrets.ELK_USER }}
           ELASTIC_USER: ${{ secrets.ELASTIC_USER }}
           ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
-          XMYSQL_PASSWORD: ${{ secrets.XMYSQL_PASSWORD }}
-          XMYSQL_ADDRESS: ${{ secrets.XMYSQL_ADDRESS }}
         with:
           key: ${{ secrets.XSSH_PRIVATE_KEY }}
           host: ${{ secrets.XSERVER_IP }}
           username: ${{ secrets.XSERVER_USER }}
           port: 22
-          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,xMYSQL_ADDRESS,xMYSQL_PASSWORD,xSERVER_IP,xSERVER_USER,xSSH_PRIVATE_KEY,STACK_NAME,ACCESS_KEY,SECRET_KEY,BUCKET_NAME
+          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PORT,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,STACK_NAME,ACCESS_KEY,SECRET_KEY,BUCKET_NAME
           script: |
-            cd /vagrant
+            cd /root
 
             export DOCKER_USERNAME=$DOCKER_USERNAME
             export MYSQL_USER=$MYSQL_USER
             export MYSQL_DATABASE=$MYSQL_DATABASE
-            export MYSQL_PASSWORD=$XMYSQL_PASSWORD
-            export MYSQL_ADDRESS=$XMYSQL_ADDRESS
+            export MYSQL_PASSWORD=$MYSQL_PASSWORD
+            export MYSQL_ADDRESS=$MYSQL_ADDRESS
             export MYSQL_PORT=$MYSQL_PORT
             export GRAFANA_ADMIN_USERNAME=$GRAFANA_ADMIN_USERNAME
             export GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
@@ -109,23 +107,23 @@ jobs:
 
 
             docker-compose pull
-            docker-compose up -d
+            docker stack deploy --compose-file docker-compose.yml $STACK_NAME
 
-  versioning:
-    name: "Tag and release"
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: major
-      - name: Create a GitHub release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+  # versioning:
+  #   name: "Tag and release"
+  #   needs: deploy
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Bump version and push tag
+  #       id: tag_version
+  #       uses: mathieudutour/github-tag-action@v6.0
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         default_bump: major
+  #     - name: Create a GitHub release
+  #       uses: ncipollo/release-action@v1
+  #       with:
+  #         tag: ${{ steps.tag_version.outputs.new_tag }}
+  #         name: Release ${{ steps.tag_version.outputs.new_tag }}
+  #         body: ${{ steps.tag_version.outputs.changelog }}
