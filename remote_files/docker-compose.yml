@@ -12,19 +12,19 @@ networks:
     name: itu-minitwit-network
 
 services:
-  server:
-    image: ${DOCKER_USERNAME}/minitwitimage
-    container_name: minitwit
-    environment:
-      - MYSQL_USER=${MYSQL_USER:?err}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
-      - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
-      - MYSQL_PORT=${MYSQL_PORT:?err}
-    ports:
-      - 8080:8080 # host port : container port
-    networks:
-      - main
+  # server:
+  #   image: ${DOCKER_USERNAME}/minitwitimage
+  #   container_name: minitwit
+  #   environment:
+  #     - MYSQL_USER=${MYSQL_USER:?err}
+  #     - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
+  #     - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
+  #     - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
+  #     - MYSQL_PORT=${MYSQL_PORT:?err}
+  #   ports:
+  #     - 8080:8080 # host port : container port
+  #   networks:
+  #     - main
 
   client:
     image: ${DOCKER_USERNAME}/minitwit-client
