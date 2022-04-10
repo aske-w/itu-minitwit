@@ -16,6 +16,7 @@ import (
 	"github.com/kataras/iris/v12/middleware/jwt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -73,6 +74,7 @@ func main() {
 	}
 
 	// Setup prometheus for monitoring
+
 	var count int64 = 0
 	var avgFollowers float64 = 0
 	usersCount := promauto.NewGauge(prometheus.GaugeOpts{
@@ -99,6 +101,7 @@ func main() {
 
 	// Register middleware
 	app.Use(middleware.InitMiddleware)
+	app.Get("/metrics", iris.FromStd(promhttp.Handler()))
 
 	app.Get("api/latest", latestHandler(db))
 	app.Post("/api/signin", signinHandler(signer, db))
