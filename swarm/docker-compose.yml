@@ -62,6 +62,8 @@ services:
       - cadvisor
     networks:
       - main
+    ports:
+      - "9090:9090"
 
   cadvisor:
     image: google/cadvisor:v0.24.1
@@ -72,6 +74,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    ports: 
+      - "8081:8080"
     networks:
       - main
 
@@ -86,8 +90,9 @@ services:
       - 'network.host=0.0.0.0'
     volumes:
       - elk_elasticsearch_data:/usr/share/elasticsearch/data
-    # ports:
-      # - '9200:9200'
+    ports:
+      - '9200:9200'
+      - '9300:9300'
     networks:
       - elk
   kibana:
