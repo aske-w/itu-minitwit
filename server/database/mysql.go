@@ -34,7 +34,7 @@ func ConnectMySql() (*gorm.DB, error) {
 	port := os.Getenv("MYSQL_PORT")
 	db_name := os.Getenv("MYSQL_DATABASE")
 
-	// TODO REMOVE THIS
+	// TODO REMOVE LOGS BELOW
 	fmt.Println("Pass: " + password)
 	fmt.Println("user: " + user)
 	fmt.Println("address: " + address)
