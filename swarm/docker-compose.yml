@@ -71,6 +71,7 @@ services:
     image: google/cadvisor:v0.24.1
     privileged: true
     container_name: cadvisor
+    hostname: '{{.Node.Hostname}}'
     volumes:
       - /:/rootfs:ro
       - /var/run/docker.sock:/var/run/docker.sock:rw
@@ -80,6 +81,8 @@ services:
       - "8081:8080"
     networks:
       - monitoring
+    deploy:
+      mode: global
 
   elasticsearch:
     image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.1'
