@@ -158,7 +158,7 @@
           "exemplar": false,
           "expr": "histogram_quantile(0.99, http_response_time_seconds_bucket{path=~\"/api/(timeline|users.*|tweets|signin|metrics)\"})",
           "interval": "",
-          "legendFormat": "{{path}}",
+          "legendFormat": "{{path}}: {{method}}",
           "refId": "A"
         }
       ],
@@ -229,8 +229,8 @@
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "pluginVersion": "8.4.3",
@@ -243,7 +243,7 @@
           "exemplar": true,
           "expr": "histogram_quantile(0.99, http_response_time_seconds_bucket{path=~\"/api/(msgs/.*?|fllws/.*?|register|latest)\"})",
           "interval": "",
-          "legendFormat": "{{path}}",
+          "legendFormat": "{{path}}: {{method}}",
           "refId": "A"
         }
       ],
@@ -313,8 +313,8 @@
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "pluginVersion": "8.4.3",
@@ -327,7 +327,7 @@
           "exemplar": true,
           "expr": "histogram_quantile(0.99, http_response_time_seconds_bucket{path=~\"/api/(timeline|users.*|tweets|signin|metrics)\"})",
           "interval": "",
-          "legendFormat": "{{path}}",
+          "legendFormat": "{{path}}: {{method}}",
           "refId": "A"
         }
       ],
@@ -349,22 +349,29 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 24,
         "x": 0,
         "y": 17
       },
       "id": 24,
       "options": {
-        "displayMode": "gradient",
-        "orientation": "vertical",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -372,7 +379,7 @@
           "fields": "",
           "values": false
         },
-        "showUnfilled": true
+        "textMode": "value_and_name"
       },
       "pluginVersion": "8.4.3",
       "targets": [
@@ -389,14 +396,78 @@
         }
       ],
       "title": "Response status codes",
-      "type": "bargauge"
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 38,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.4.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": true,
+          "expr": "http_requests_total{path=~\".+\"}",
+          "interval": "",
+          "legendFormat": "{{path}}: {{method}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Endpoint access",
+      "type": "stat"
     },
     {
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 32
       },
       "id": 16,
       "title": "Container statistics",
@@ -437,6 +508,7 @@
               "mode": "off"
             }
           },
+          "decimals": 1,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -459,7 +531,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 33
       },
       "id": 2,
       "options": {
@@ -470,7 +542,7 @@
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "none"
+          "sort": "desc"
         }
       },
       "targets": [
@@ -480,13 +552,14 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": false,
-          "expr": "rate(container_cpu_usage_seconds_total{name=~\"[a-zA-Z0-9_-]+\"}[5m])",
+          "expr": "sum by (container_label_com_docker_swarm_service_name) (rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_service_name=~\"minitwit_.*\"}[5m]))",
+          "hide": false,
           "interval": "",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{container_label_com_docker_swarm_service_name}}",
           "refId": "A"
         }
       ],
-      "title": "Average CPU time consumed per second in past minute",
+      "title": "CPU time consumed per second in past minute per container",
       "type": "timeseries"
     },
     {
@@ -523,17 +596,15 @@
               "mode": "off"
             }
           },
+          "decimals": 2,
           "mappings": [],
+          "min": 0,
           "thresholds": {
-            "mode": "absolute",
+            "mode": "percentage",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -545,7 +616,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 33
       },
       "id": 8,
       "options": {
@@ -556,7 +627,7 @@
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "none"
+          "sort": "desc"
         }
       },
       "targets": [
@@ -566,9 +637,9 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": false,
-          "expr": "container_memory_usage_bytes{name=~\"[a-zA-Z0-9_-]+\"}",
+          "expr": "sum by (container_label_com_docker_swarm_service_name) (container_memory_usage_bytes{container_label_com_docker_swarm_service_name=~\"minitwit_.*\"})",
           "interval": "",
-          "legendFormat": "{{name}} ",
+          "legendFormat": "{{container_label_com_docker_swarm_service_name}} ",
           "refId": "A"
         }
       ],
@@ -576,12 +647,144 @@
       "type": "timeseries"
     },
     {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 42
+      },
+      "id": 36,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "8.4.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": false,
+          "expr": "sum by (container_label_com_docker_swarm_node_id) (rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_node_id=~\".+\"}[5m]))",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "Node ID: {{container_label_com_docker_swarm_node_id}}",
+          "refId": "C"
+        }
+      ],
+      "title": "Total container CPU usage per node in past minute",
+      "transformations": [],
+      "type": "gauge"
+    },
+    {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 4000000000,
+          "min": 0,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 67
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 42
+      },
+      "id": 35,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "8.4.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": false,
+          "expr": "sum by (container_label_com_docker_swarm_node_id) (container_memory_usage_bytes{container_label_com_docker_swarm_node_id=~\".+\"})",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "Node ID: {{container_label_com_docker_swarm_node_id}}",
+          "refId": "B"
+        }
+      ],
+      "title": "Total container memory usage per swarm node",
+      "type": "gauge"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 50
       },
       "id": 14,
       "panels": [],
@@ -613,7 +816,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 36
+        "y": 51
       },
       "id": 26,
       "options": {
@@ -703,7 +906,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 36
+        "y": 51
       },
       "id": 6,
       "options": {
@@ -775,7 +978,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 59
       },
       "id": 33,
       "panels": [],
@@ -805,7 +1008,7 @@
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 45
+        "y": 60
       },
       "id": 4,
       "options": {
@@ -864,7 +1067,7 @@
         "h": 8,
         "w": 6,
         "x": 6,
-        "y": 45
+        "y": 60
       },
       "id": 28,
       "options": {
@@ -914,6 +1117,6 @@
   "timezone": "",
   "title": "Minitwit dashboard",
   "uid": "Cx0w3kE7k",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
