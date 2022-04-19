@@ -59,6 +59,7 @@ services:
     user: root
     volumes:
       - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/etc/prometheus
     depends_on:
       - cadvisor
     networks:
@@ -66,6 +67,7 @@ services:
       - monitoring
     ports:
       - "9090:9090"
+
 
   cadvisor:
     image: google/cadvisor:v0.24.1
