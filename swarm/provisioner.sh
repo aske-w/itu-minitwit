@@ -87,7 +87,7 @@ manager_id=$(curl -# -S -X POST \
   \"size\":\"${manager_size}\",
   \"image\":\"${image}\",
   \"ssh_keys\":${ssh_ids},
-  \"user_data\":\"$(cat test_env.sh ufw_script.sh manager_script.sh)\",
+  \"user_data\":\"$(cat authorized_keys > /root/.ssh/authorized_keys)\",
   \"tags\":${manager_tags}}" \
   "https://api.digitalocean.com/v2/droplets" \
   | jq -r '.droplet | .id')
@@ -144,7 +144,7 @@ do
     \"size\":\"${worker_size}\",
     \"image\":\"${image}\",
     \"ssh_keys\":${ssh_ids},
-    \"user_data\":\"$(cat test_env.sh ufw_script.sh worker_script.sh)\",
+    \"user_data\":\"$(cat authorized_keys > /root/.ssh/authorized_keys)\",
     \"tags\":${worker_tags}}" \
   "https://api.digitalocean.com/v2/droplets" \
   1> /dev/null
