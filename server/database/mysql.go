@@ -33,6 +33,7 @@ func ConnectMySql() (*gorm.DB, error) {
 	address := os.Getenv("MYSQL_ADDRESS")
 	port := os.Getenv("MYSQL_PORT")
 	db_name := os.Getenv("MYSQL_DATABASE")
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, address, port, db_name)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{

@@ -24,7 +24,7 @@ const Signup = () => {
 
         api.post("/register", form)
             .then(() => {
-                api.post("signin", {
+                api.post("/signin", {
                     username: form.username,
                     password: form.pwd,
                 }).then(response => {

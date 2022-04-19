@@ -3,6 +3,7 @@ package main
 import (
 	"aske-w/itu-minitwit/database"
 	"aske-w/itu-minitwit/environment"
+	"aske-w/itu-minitwit/middleware"
 	"aske-w/itu-minitwit/models"
 	"aske-w/itu-minitwit/services"
 	"aske-w/itu-minitwit/web/controllers"
@@ -13,6 +14,9 @@ import (
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/jwt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -68,6 +72,36 @@ func main() {
 			ID: 0, // id is always 0
 		}).Update("latest", latest)
 	}
+
+	// Setup prometheus for monitoring
+
+	var count int64 = 0
+	var avgFollowers float64 = 0
+	usersCount := promauto.NewGauge(prometheus.GaugeOpts{
+		Subsystem: "minitwit",
+		Name:      "total_users_count",
+		Help:      "The total amount of users in the database",
+	})
+	avgFollowersCount := promauto.NewGauge(prometheus.GaugeOpts{
+		Subsystem: "minitwit",
+		Name:      "average_followers_count",
+		Help:      "The total amount of users in the database",
+	})
+	//run non-middleware metrics data collection for in separate thread.
+	// middleware data is collected in ./middleware/prometheusMiddleware.go
+	go func() {
+		for {
+			db.Model(&models.User{}).Count(&count)
+			db.Raw("select ((select count(follower_id) from followers) / (select count(*) from users));").Scan(&avgFollowers)
+			usersCount.Set(float64(count))
+			avgFollowersCount.Set(avgFollowers)
+			time.Sleep(60 * time.Second)
+		}
+	}()
+
+	// Register middleware
+	app.Use(middleware.InitMiddleware)
+	app.Get("/metrics", iris.FromStd(promhttp.Handler()))
 
 	app.Get("api/latest", latestHandler(db))
 	app.Post("/api/signin", signinHandler(signer, db))
@@ -452,9 +486,11 @@ func signupHandler(db *gorm.DB, updateLatest func(map[string]string)) iris.Handl
 			return
 		}
 
-		_, createErr := authService.CreateUser(user.Username, user.Email, user.Password)
+		createdUser, createErr := authService.CreateUser(user.Username, user.Email, user.Password)
 
-		if err == nil || createErr != nil {
+		if err == nil || createErr == nil {
+			userService.FollowUser(createdUser.ID, createdUser.ID)
+
 			updateLatest(ctx.URLParams())
 			ctx.StatusCode(204)
 
@@ -528,25 +564,21 @@ func timeline(db *gorm.DB) iris.Handler {
 		tweets := []services.Tweet{}
 		err := db.Raw(`
 			SELECT
-				users.id as UserId,
-				users.Username,
-				users.Email,
-				messages.id as Message_id,
+				messages.id AS Message_id,
 				messages.Author_id,
 				messages.Text,
 				messages.Pub_date,
-				messages.Flagged
-			from users, messages
-			where
-				messages.flagged = 0 and
-				messages.author_id = users.id and
-				(
-					users.id = ? or
-					users.id in (select follower_id from followers where user_id = ?)
-				)
-			order by messages.pub_date DESC
-			limit ?
-		`, claims.Id, claims.Id, 30).Scan(&tweets).Error
+				messages.Flagged,
+				users.id AS UserId,
+				users.Username,
+				users.Email
+			FROM followers
+			JOIN messages ON followers.follower_id = messages.author_id
+			JOIN users ON followers.follower_id = users.id
+			WHERE user_id = ? AND flagged = 0
+			ORDER BY messages.pub_date DESC
+			LIMIT ?
+		`, claims.Id, 30).Scan(&tweets).Error
 
 		if err != nil {
 			ctx.StatusCode(400)

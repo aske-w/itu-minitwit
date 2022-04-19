@@ -1,5 +1,4 @@
-version: '3.9'
-
+version: "3.8"
 volumes:
   grafana-storage:
   prometheus_data:
@@ -10,21 +9,24 @@ networks:
   elk:
   main:
     name: itu-minitwit-network
+  monitoring: # network for prometheus to scrape in a swarm
+    driver: overlay
 
 services:
-  # server:
-  #   image: ${DOCKER_USERNAME}/minitwitimage
-  #   container_name: minitwit
-  #   environment:
-  #     - MYSQL_USER=${MYSQL_USER:?err}
-  #     - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
-  #     - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
-  #     - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
-  #     - MYSQL_PORT=${MYSQL_PORT:?err}
-  #   ports:
-  #     - 8080:8080 # host port : container port
-  #   networks:
-  #     - main
+  server:
+    image: ${DOCKER_USERNAME}/minitwitimage
+    container_name: minitwit
+    environment:
+      - MYSQL_USER=${MYSQL_USER:?err}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:?err}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?err}
+      - MYSQL_ADDRESS=${MYSQL_ADDRESS:?err}
+      - MYSQL_PORT=${MYSQL_PORT:?err}
+    ports:
+      - 8080:8080 # host port : container port
+    networks:
+      - main
+      - monitoring
 
   client:
     image: ${DOCKER_USERNAME}/minitwit-client
@@ -48,28 +50,39 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?err}
       GF_USERS_ALLOW_SIGN_UP: 0
       GF_AUTH_ANONYMOUS_ENABLED: 1
+    networks:
+      - main
 
   prometheus:
     image: prom/prometheus:v2.24.0
     container_name: prometheus
     user: root
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - ./prometheus/:/etc/prometheus/
     depends_on:
       - cadvisor
+    networks:
+      - main
+      - monitoring
+    ports:
+      - "9090:9090"
 
   cadvisor:
     image: google/cadvisor:v0.24.1
     privileged: true
     container_name: cadvisor
+    hostname: '{{.Node.Hostname}}'
     volumes:
       - /:/rootfs:ro
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-
+    ports: 
+      - "8081:8080"
+    networks:
+      - monitoring
+    deploy:
+      mode: global
 
   elasticsearch:
     image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.1'
@@ -79,10 +92,12 @@ services:
       - 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?err}'
       - 'ELASTIC_USERNAME=${ELASTIC_USER:?err}'
       - 'xpack.security.enabled=true'
+      - 'network.host=0.0.0.0'
     volumes:
       - elk_elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - '9200:9200'
+      - '9300:9300'
     networks:
       - elk
   kibana:
@@ -110,3 +125,5 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - elk
+    deploy:
+      mode: global

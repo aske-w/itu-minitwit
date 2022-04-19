@@ -1,3 +1,46 @@
+# Developing
+
+## Setup
+
+**First make sure the following is installed:**
+
+- Docker & docker-compose or Docker Desktop
+- Nodejs v14 or greater
+- Go v1.17 or greater
+
+In `./client` you need to run `npm install`
+
+If you want automatic reloading in go (server development):
+
+`go install github.com/pilu/fresh`
+
+**Setting ENV:**
+
+Make sure env files in the following directories are set:
+
+_In each directory you'll find a `.env.example`. You need to create a file called `.env`_
+
+- ./ (root)
+- ./client
+- ./server
+- ./docker_db
+
+## Running
+
+In `./` run `docker compose up -d` (only if you need logging and the other services)
+
+In `./docker_db` run `docker compose up -d`
+
+In `./client` run `npm start`
+
+If you have installed fresh:
+
+- In `./server` run `fresh`
+
+else:
+
+- In `./server` run `go run main.go`
+
 # Maintainability and Technical Debt estimation badges
 
 ## Sonarqube
@@ -10,7 +53,6 @@
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=aske-w_itu-minitwit&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=aske-w_itu-minitwit)
-
 
 ## Code Climate
 
@@ -178,3 +220,32 @@ Under `Kibana/Index Patterns` do the following
 Once the index pattern is created navigate `Analytics/Discover` in the sidebar. The select the newly created index pattern.
 
 We can the filter by fields. For example if we only want to see the message of the logs we can under the `Avaliable fields` press the plus icon to filter by messages.
+
+
+## Docker swarm
+
+
+### Provisioning
+
+In swarm directory run the following files in their respective order:
+
+- prov.sh
+
+-
+### Nodes
+
+Manager node ip: ```165.22.67.59```
+
+Worker node ip: ```165.22.81.184```
+
+### manager
+username: manager
+password: 
+
+### worker1
+username: worker1
+password: 
+
+### worker2
+username: worker2
+password: 
