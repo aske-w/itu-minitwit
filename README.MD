@@ -223,6 +223,11 @@ We can the filter by fields. For example if we only want to see the message of t
 
 
 ## Docker swarm 
+### Nodes
+
+Manager node ip: ```165.22.67.59```
+
+Worker node ip: ```165.22.81.184```
 
 ### manager
 username: manager

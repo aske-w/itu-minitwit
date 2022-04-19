@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: copy file via ssh password
+    - name: copy file to manager node via ssh password
       uses: appleboy/scp-action@master
       with:
         key: ${{ secrets.XSSH_PRIVATE_KEY }}
@@ -61,6 +61,16 @@ jobs:
         port: 22
         strip_components: 2
         source: "./swarm/docker-compose.yml, ./swarm/filebeat.yml, ./swarm/grafana/, ./swarm/prometheus/"
+        target: "/root"
+    - name: copy file to worker node via ssh password
+      uses: appleboy/scp-action@master
+      with:
+        key: ${{ secrets.XSSH_PRIVATE_KEY }}
+        host: ${{ secrets.XSERVER_IP }}
+        username: ${{ secrets.XSERVER_USER }}
+        port: 22
+        strip_components: 2
+        source: "./swarm/filebeat.yml"
         target: "/root"
 
   deploy:
