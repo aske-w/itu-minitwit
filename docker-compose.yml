@@ -59,6 +59,7 @@ services:
       - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
       - 'discovery.type=single-node'
       - 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?err}'
+      - 'ELASTIC_USERNAME=${ELASTIC_USER:?err}'
       - 'xpack.security.enabled=true'
     volumes:
       - elk_elasticsearch_data:/usr/share/elasticsearch/data
@@ -69,6 +70,9 @@ services:
 
   kibana:
     image: 'docker.elastic.co/kibana/kibana:7.17.1'
+    configs:
+      - source: ./kibana.yml
+        target: /usr/share/kibana/config/kibana.yml
     environment:
       elasticsearch.hosts: '["elasticsearch:9200"]'
       ELASTICSEARCH_USERNAME: '${ELASTIC_USER:?err}'

@@ -13,9 +13,9 @@ import (
 var totalRequests = prometheus.NewCounterVec(
 	prometheus.CounterOpts{
 		Name: "http_requests_total",
-		Help: "Number of get requests.",
+		Help: "Number of requests.",
 	},
-	[]string{"path"},
+	[]string{"path", "method"},
 )
 
 var responseStatus = prometheus.NewCounterVec(
@@ -29,34 +29,62 @@ var responseStatus = prometheus.NewCounterVec(
 var httpDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
 	Name: "http_response_time_seconds",
 	Help: "Duration of HTTP requests.",
-}, []string{"path"})
+}, []string{"path", "method", "status_code"})
 
 func PrometheusRequestCountMiddleware(ctx iris.Context) {
 	path := ctx.Path()
 	// Remove usernames from path since it otherwise generates enough data
 	// to cause Prometheus to run out of memory when scraping webserver metrics.
-	// Ideally the same should be done for non-API endpoints
-	match, err := regexp.MatchString("^/api/.+", path)
+	match, err := regexp.MatchString("/api/msgs/.+", path)
 	utils.CheckError(err)
 	if match {
-		match, err = regexp.MatchString("/api/msgs/.+", path)
-		utils.CheckError(err)
-		if match {
-			path = "/api/msgs/<username>"
-		} else {
-			match, err = regexp.MatchString("/api/fllws/.+", path)
-			utils.CheckError(err)
-			if match {
-				path = "/api/fllws/<username>"
-			}
-		}
+		path = "/api/msgs/<username>"
+		goto skip
 	}
 
-	totalRequests.WithLabelValues(path).Inc()
-	timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+	match, err = regexp.MatchString("/api/fllws/.+", path)
+	utils.CheckError(err)
+	if match {
+		path = "/api/fllws/<username>"
+		goto skip
+	}
+
+	match, err = regexp.MatchString("/api/users/.*?/follow", path)
+	utils.CheckError(err)
+	if match {
+		path = "/api/users/<username>/follow"
+		goto skip
+	}
+
+	match, err = regexp.MatchString("/api/users/.*?/isfollowing", path)
+	utils.CheckError(err)
+	if match {
+		path = "/api/users/<username>/isfollowing"
+		goto skip
+	}
+
+	match, err = regexp.MatchString("/api/users/.*?/tweets", path)
+	utils.CheckError(err)
+	if match {
+		path = "/api/users/<username>/tweets"
+		goto skip
+	}
+
+	match, err = regexp.MatchString("/api/users/.*", path)
+	utils.CheckError(err)
+	if match {
+		path = "/api/users/<username>"
+	}
+skip:
+
+	httpMethod := ctx.Method()
+	httpStatusCode := strconv.Itoa(ctx.GetStatusCode())
+
+	totalRequests.WithLabelValues(path, httpMethod).Inc()
+	timer := prometheus.NewTimer(httpDuration.WithLabelValues(path, httpMethod, httpStatusCode))
 
 	ctx.Next()
-	responseStatus.WithLabelValues(strconv.Itoa(ctx.GetStatusCode())).Inc()
+	responseStatus.WithLabelValues(httpStatusCode).Inc()
 	timer.ObserveDuration()
 }
 
