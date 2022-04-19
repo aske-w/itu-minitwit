@@ -5,9 +5,9 @@ import "gorm.io/gorm"
 type Message struct {
 	gorm.Model
 	Text      string
-	Pub_date  int `gorm:"index"`
+	Pub_date  int `gorm:"index:date_index;index:author_date,sort:desc,priority:2"`
 	Flagged   int
-	Author_id int
+	Author_id int `gorm:"index:author_date,priority:1"`
 	Author    User
 }
 
