@@ -73,6 +73,28 @@ jobs:
         source: "./swarm/filebeat.yml"
         target: "/root"
 
+    - name: put authorized_keys in manager
+      uses: appleboy/scp-action@master
+      with:
+        key: ${{ secrets.XSSH_PRIVATE_KEY }}
+        host: ${{ secrets.XSERVER_IP }}
+        username: ${{ secrets.XSERVER_USER }}
+        port: 22
+        strip_components: 2
+        source: "./swarm/authorized_keys"
+        target: "/root/.ssh"
+
+    - name: put authorized_keys in worker
+      uses: appleboy/scp-action@master
+      with:
+        key: ${{ secrets.XSSH_PRIVATE_KEY }}
+        host: ${{ secrets.WORKER_IP }}
+        username: ${{ secrets.XSERVER_USER }}
+        port: 22
+        strip_components: 2
+        source: "./swarm/authorized_keys"
+        target: "/root/.ssh"
+
   deploy:
     name: "Deploy to droplet"
     needs: copy
