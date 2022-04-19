@@ -20,6 +20,7 @@ jobs:
       - name: Install correct version of go
         uses: actions/setup-go@v3
         with:
+          # GOSEC and Lichen doesnt work with 1.18.x
           go-version: '1.17.6'
 
       - name: Format
@@ -29,8 +30,7 @@ jobs:
       - name: Examine source
         working-directory: ./server
         run: if [ "$(go vet)" -gt 0 ]; then exit 1; fi
-
-      # DOESN'T WORK ANYMORE. Gives this error at random `2022/04/19 10:30:48 internal error: package "aske-w/itu-minitwit/models" without types was imported from "command-line-arguments"`      
+      
       - name: Download Gosec
         uses: wei/wget@v1
         with:
