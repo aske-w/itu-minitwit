@@ -20,7 +20,8 @@ jobs:
       - name: Install correct version of go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18.0'
+          # GOSEC and Lichen doesnt work with 1.18.x
+          go-version: '1.17.6'
 
       - name: Format
         working-directory: ./server
@@ -29,7 +30,7 @@ jobs:
       - name: Examine source
         working-directory: ./server
         run: if [ "$(go vet)" -gt 0 ]; then exit 1; fi
-
+      
       - name: Download Gosec
         uses: wei/wget@v1
         with:
