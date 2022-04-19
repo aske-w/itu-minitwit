@@ -59,7 +59,6 @@ services:
     user: root
     volumes:
       - ./prometheus/:/etc/prometheus
-      - prometheus_data:/prometheus
     depends_on:
       - cadvisor
     networks:
