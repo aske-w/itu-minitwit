@@ -2,6 +2,11 @@ version: "3.8"
 volumes:
   grafana-storage:
   prometheus_data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: './prometheus/'
   elk_elasticsearch_data:
   db_data:
 
@@ -58,7 +63,6 @@ services:
     container_name: prometheus
     user: root
     volumes:
-      - ./prometheus/:/etc/prometheus/
       - prometheus_data:/etc/prometheus
     depends_on:
       - cadvisor
