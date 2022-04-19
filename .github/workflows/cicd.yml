@@ -78,54 +78,65 @@ jobs:
     needs: copy
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Digital Ocean droplet via SSH action
-        uses: appleboy/ssh-action@v0.1.4
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          MYSQL_USER: ${{ secrets.XMYSQL_USER }}
-          MYSQL_DATABASE: ${{ secrets.XMYSQL_DATABASE }}
-          MYSQL_PASSWORD: ${{ secrets.XMYSQL_PASSWORD }}
-          MYSQL_ADDRESS: ${{ secrets.XMYSQL_ADDRESS }}
-          MYSQL_PORT: 25060
-          GRAFANA_ADMIN_USERNAME: ${{ secrets.GRAFANA_ADMIN_USERNAME }}
-          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
-          ELK_USER: ${{ secrets.ELK_USER }}
-          ELASTIC_USER: ${{ secrets.ELASTIC_USER }}
-          ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
-          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
-          STACK_NAME: ${{ secrets.STACK_NAME }}
-        with:
-          key: ${{ secrets.XSSH_PRIVATE_KEY }}
-          host: ${{ secrets.XSERVER_IP }}
-          username: ${{ secrets.XSERVER_USER }}
-          port: 22
-          envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PORT,MYSQL_ADDRESS,MYSQL_PASSWORD,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,STACK_NAME,ACCESS_KEY,SECRET_KEY,BUCKET_NAME
-          script: |
-            cd /root
+    - name: Shh into worker node
+      uses: appleboy/ssh-action@v0.1.4
+      with:
+        key: ${{ secrets.XSSH_PRIVATE_KEY }}
+        host: ${{ secrets.WORKER_IP }}
+        username: ${{ secrets.XSERVER_USER }}
+        port: 22
+        script: |
+          cd /root
+          chown root filebeat.yml
+          chmod go-w filebeat.yml
 
-            export DOCKER_USERNAME=$DOCKER_USERNAME
-            export MYSQL_USER=$MYSQL_USER
-            export MYSQL_DATABASE=$MYSQL_DATABASE
-            export MYSQL_PASSWORD=$MYSQL_PASSWORD
-            export MYSQL_ADDRESS=$MYSQL_ADDRESS
-            export MYSQL_PORT=$MYSQL_PORT
-            export GRAFANA_ADMIN_USERNAME=$GRAFANA_ADMIN_USERNAME
-            export GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
-            export ELK_USER=$ELK_USER
-            export ELASTIC_USER=$ELASTIC_USER
-            export ELASTIC_PASSWORD=$ELASTIC_PASSWORD
-            export STACK_NAME=$STACK_NAME
-            export ACCESS_KEY=$ACCESS_KEY
-            export SECRET_KEY=$SECRET_KEY
-            export BUCKET_NAME=$BUCKET_NAME
-            
-            chown root filebeat.yml
-            chmod go-w filebeat.yml
+    - name: Deploy to Digital Ocean droplet via SSH action
+      uses: appleboy/ssh-action@v0.1.4
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        MYSQL_USER: ${{ secrets.XMYSQL_USER }}
+        MYSQL_DATABASE: ${{ secrets.XMYSQL_DATABASE }}
+        MYSQL_PASSWORD: ${{ secrets.XMYSQL_PASSWORD }}
+        MYSQL_ADDRESS: ${{ secrets.XMYSQL_ADDRESS }}
+        MYSQL_PORT: 25060
+        GRAFANA_ADMIN_USERNAME: ${{ secrets.GRAFANA_ADMIN_USERNAME }}
+        GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+        ELK_USER: ${{ secrets.ELK_USER }}
+        ELASTIC_USER: ${{ secrets.ELASTIC_USER }}
+        ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
+        BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
+        STACK_NAME: ${{ secrets.STACK_NAME }}
+      with:
+        key: ${{ secrets.XSSH_PRIVATE_KEY }}
+        host: ${{ secrets.XSERVER_IP }}
+        username: ${{ secrets.XSERVER_USER }}
+        port: 22
+        envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PORT,MYSQL_ADDRESS,MYSQL_PASSWORD,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,STACK_NAME,ACCESS_KEY,SECRET_KEY,BUCKET_NAME
+        script: |
+          cd /root
+          export DOCKER_USERNAME=$DOCKER_USERNAME
+          export MYSQL_USER=$MYSQL_USER
+          export MYSQL_DATABASE=$MYSQL_DATABASE
+          export MYSQL_PASSWORD=$MYSQL_PASSWORD
+          export MYSQL_ADDRESS=$MYSQL_ADDRESS
+          export MYSQL_PORT=$MYSQL_PORT
+          export GRAFANA_ADMIN_USERNAME=$GRAFANA_ADMIN_USERNAME
+          export GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
+          export ELK_USER=$ELK_USER
+          export ELASTIC_USER=$ELASTIC_USER
+          export ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+          export STACK_NAME=$STACK_NAME
+          export ACCESS_KEY=$ACCESS_KEY
+          export SECRET_KEY=$SECRET_KEY
+          export BUCKET_NAME=$BUCKET_NAME
+          
+          chown root filebeat.yml
+          chmod go-w filebeat.yml
 
-            docker-compose pull
-            docker stack deploy --compose-file docker-compose.yml $STACK_NAME
+          docker-compose pull
+          docker stack deploy --compose-file docker-compose.yml $STACK_NAME
 
   # versioning:
   #   name: "Tag and release"
