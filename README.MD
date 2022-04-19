@@ -222,7 +222,16 @@ Once the index pattern is created navigate `Analytics/Discover` in the sidebar. 
 We can the filter by fields. For example if we only want to see the message of the logs we can under the `Avaliable fields` press the plus icon to filter by messages.
 
 
-## Docker swarm 
+## Docker swarm
+
+
+### Provisioning
+
+In swarm directory run the following files in their respective order:
+
+- prov.sh
+
+-
 ### Nodes
 
 Manager node ip: ```165.22.67.59```
