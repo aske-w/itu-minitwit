@@ -57,6 +57,12 @@ func main() {
 		return new(UserClaims)
 	})
 
+	// make sure the latest row is in the database
+	db.FirstOrCreate(&models.Latest{
+		// id is always 0
+		ID: 0,
+	})
+
 	updateLatest := func(params map[string]string) {
 		latest, found := params["latest"]
 
@@ -64,7 +70,7 @@ func main() {
 			return
 		}
 
-		db.Find(&models.Latest{
+		db.First(&models.Latest{
 			ID: 0, // id is always 0
 		}).Update("latest", latest)
 	}
