@@ -93,7 +93,7 @@ func NewApp(mode string) *iris.Application {
 
 func main() {
 	app := NewApp("production")
-	app.Listen("127.0.0.1:8080")
+	app.Listen(":8080")
 }
 
 func latestHandler(db *gorm.DB) iris.Handler {
@@ -262,20 +262,11 @@ func simulatorFollowHandler(updateLatest func(map[string]string)) iris.Handler {
 
 func userTweets(db *gorm.DB) iris.Handler {
 	return func(ctx iris.Context) {
-		username := ctx.Params().Get("username")
-		user, err := userService.FindByUsername(username)
-
-		if err != nil {
+		userId, err := userService.UsernameToId(ctx.Params().Get("username"))
+		tweets, tlErr := timelineService.GetUserTimeline(userId)
+		if err != nil || tlErr != nil {
 			ctx.StatusCode(404)
 			ctx.JSON(iris.Map{"error": "User not found"})
-			return
-		}
-
-		tweets, err := timelineService.GetUserTimeline(int(user.ID))
-
-		if err != nil {
-			ctx.StatusCode(404)
-			ctx.JSON(iris.Map{"error": "Tweets not found"})
 			return
 		}
 
@@ -308,8 +299,8 @@ func indexHandler(db *gorm.DB) iris.Handler {
 		tweets, err := timelineService.GetPublicTimeline()
 
 		if err != nil {
-			ctx.StatusCode(500)
-			ctx.JSON(iris.Map{"error": "Can't get public timeline"})
+			ctx.StatusCode(400)
+			ctx.JSON(iris.Map{"error": err.Error()})
 
 			return
 		}
