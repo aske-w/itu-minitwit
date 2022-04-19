@@ -20,7 +20,7 @@ output.elasticsearch:
     - index: "itu-minitwit-%{[agent.version]}-%{+yyyy.MM.dd}"
       when.or:
         - contains:
-            container.image.name: itu-minitwit_server
+            container.image.name: ${CONTAINER_PREFIX:?err}/minitwitimage
         - contains:
             container.image.name: ${CONTAINER_PREFIX:?err}
 
