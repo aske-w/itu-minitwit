@@ -257,36 +257,14 @@ func simulatorFollowHandler(updateLatest func(map[string]string)) iris.Handler {
 
 func userTweets(db *gorm.DB) iris.Handler {
 	return func(ctx iris.Context) {
-		tweets := []services.Tweet{}
-		err := db.Raw(`
-			SELECT
-				users.id as UserId,
-				users.Username,
-				users.Email,
-				messages.id as Message_id,
-				messages.Author_id,
-				messages.Text,
-				messages.Pub_date,
-				messages.Flagged
-			from users, messages
-			where
-				messages.flagged = 0 and
-				messages.author_id = users.id and
-				(
-					users.username = ?
-				)
-			order by messages.pub_date DESC
-			limit ?
-		`, ctx.Params().Get("username"), 30).Scan(&tweets).Error
-
-		if err != nil {
+		userId, err := userService.UsernameToId(ctx.Params().Get("username"))
+		tweets, tlErr := timelineService.GetUserTimeline(userId)
+		if err != nil || tlErr != nil {
 			ctx.StatusCode(404)
 			ctx.JSON(iris.Map{"error": "Tweets not found"})
 
 			return
 		}
-
-		services.AddAvatarAndDates(&tweets)
 
 		ctx.JSON(tweets)
 	}
@@ -313,14 +291,15 @@ func userHandler(db *gorm.DB) iris.Handler {
 
 func indexHandler(db *gorm.DB) iris.Handler {
 	return func(ctx iris.Context) {
-		tweets := []services.Tweet{}
-		err := db.Model(&models.User{}).Select("users.id as UserId", "users.Username", "users.Email", "messages.id as Message_id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
+
+		tweets, err := timelineService.GetPublicTimeline()
 
 		if err != nil {
-			// return nil, err
-		}
+			ctx.StatusCode(400)
+			ctx.JSON(iris.Map{"error": err.Error()})
 
-		services.AddAvatarAndDates(&tweets)
+			return
+		}
 
 		ctx.JSON(tweets)
 	}
@@ -527,31 +506,12 @@ func timeline(db *gorm.DB) iris.Handler {
 	return func(ctx iris.Context) {
 		claims := jwt.Get(ctx).(*UserClaims)
 
-		tweets := []services.Tweet{}
-		err := db.Raw(`
-			SELECT
-				messages.id AS Message_id,
-				messages.Author_id,
-				messages.Text,
-				messages.Pub_date,
-				messages.Flagged,
-				users.id AS UserId,
-				users.Username,
-				users.Email
-			FROM followers
-			JOIN messages ON followers.follower_id = messages.author_id
-			JOIN users ON followers.follower_id = users.id
-			WHERE user_id = ? AND flagged = 0
-			ORDER BY messages.pub_date DESC
-			LIMIT ?
-		`, claims.Id, 30).Scan(&tweets).Error
+		tweets, err := timelineService.GetPrivateTimeline(int(claims.Id))
 
 		if err != nil {
 			ctx.StatusCode(400)
 			ctx.JSON(iris.Map{"error": "Something went wrong..."})
 		}
-
-		services.AddAvatarAndDates(&tweets)
 
 		ctx.JSON(tweets)
 	}
