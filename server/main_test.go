@@ -18,24 +18,39 @@ func TestRegister(t *testing.T) {
 	e := httptest.New(t, app)
 
 	form := map[string]interface{}{
-		"username": "user1",
+		"username": "user",
 		"password": "123123",
-		"email":    "user1@gmail.com",
+		"email":    "user@gmail.com",
 	}
 
 	e.POST("/api/register").WithJSON(form).Expect().Status(httptest.StatusNoContent)
 }
 
-func TestSignin(t *testing.T) {
+func TestRegisterWithExistingCredentials(t *testing.T) {
+	app := NewApp("development")
+
+	e := httptest.New(t, app)
+
+	form := map[string]interface{}{
+		"username": "user",
+		"password": "123123",
+		"email":    "user@gmail.com",
+	}
+
+	e.POST("/api/register").WithJSON(form).Expect().Status(httptest.StatusNoContent)
+	e.POST("/api/register").WithJSON(form).Expect().Status(httptest.StatusBadRequest)
+}
+
+func TestSigninWithNonexistingCredentials(t *testing.T) {
 	app := NewApp("development")
 	e := httptest.New(t, app)
 
 	form := map[string]interface{}{
-		"username": "user1",
+		"username": "nonexistinguser",
 		"password": "123123",
 	}
 
-	e.POST("/api/signin").WithJSON(form).Expect().Status(httptest.StatusOK).JSON().Object().Raw()
+	e.POST("/api/signin").WithJSON(form).Expect().Status(httptest.StatusBadRequest).JSON().Object().Raw()
 }
 
 func TestRegisterAndSignin(t *testing.T) {
@@ -43,15 +58,15 @@ func TestRegisterAndSignin(t *testing.T) {
 	e := httptest.New(t, app)
 
 	form1 := map[string]interface{}{
-		"username": "user2",
+		"username": "user",
 		"password": "123123",
-		"email":    "user2@gmail.com",
+		"email":    "user@gmail.com",
 	}
 
 	e.POST("/api/register").WithJSON(form1).Expect().Status(httptest.StatusNoContent)
 
 	form2 := map[string]interface{}{
-		"username": "user2",
+		"username": "user",
 		"password": "123123",
 	}
 
@@ -64,15 +79,15 @@ func TestRegisterAndSigninAndPostMessage(t *testing.T) {
 
 	// Register
 	form := map[string]interface{}{
-		"username": "user3",
+		"username": "user",
 		"password": "123123",
-		"email":    "user3@gmail.com",
+		"email":    "user@gmail.com",
 	}
 	e.POST("/api/register").WithJSON(form).Expect().Status(httptest.StatusNoContent)
 
 	//Sign in
 	form2 := map[string]interface{}{
-		"username": "user3",
+		"username": "user",
 		"password": "123123",
 	}
 
@@ -86,19 +101,34 @@ func TestRegisterAndSigninAndPostMessage(t *testing.T) {
 	e.POST("/api/tweets").WithJSON(form3).WithHeader("Authorization", "Bearer "+token).Expect().Status(httptest.StatusNoContent)
 }
 
+func TestRegisterAndSigninAndPostMessageWithWrongBearerToken(t *testing.T) {
+	app := NewApp("development")
+	e := httptest.New(t, app)
+
+	//Invalid token
+	invalidToken := "invalidToken"
+
+	//Post message
+	form3 := map[string]interface{}{
+		"content": "Test post message",
+	}
+
+	e.POST("/api/tweets").WithJSON(form3).WithHeader("Authorization", "Bearer "+invalidToken).Expect().Status(httptest.StatusUnauthorized)
+}
+
 func TestFollowAndUnfollow(t *testing.T) {
 	app := NewApp("development")
 	e := httptest.New(t, app)
 
 	userFollowingForm := map[string]interface{}{
-		"username": "user4",
-		"email":    "user4@email.com",
+		"username": "user1",
+		"email":    "user1@email.com",
 		"password": "123123",
 	}
 
 	userToFollowForm := map[string]interface{}{
-		"username": "user5",
-		"email":    "user5@email.com",
+		"username": "user2",
+		"email":    "user2@email.com",
 		"password": "123123",
 	}
 
@@ -132,41 +162,41 @@ func TestPublicTimeline(t *testing.T) {
 	e := httptest.New(t, app)
 
 	//Register user1
-	user6 := map[string]interface{}{
-		"username": "user6",
-		"email":    "user6@email.com",
+	user1 := map[string]interface{}{
+		"username": "user1",
+		"email":    "user1@email.com",
 		"password": "123123",
 	}
-	e.POST("/api/register").WithJSON(user6).Expect().Status(httptest.StatusNoContent)
+	e.POST("/api/register").WithJSON(user1).Expect().Status(httptest.StatusNoContent)
 	//Register user2
-	user7 := map[string]interface{}{
-		"username": "user7",
-		"email":    "user7@email.com",
+	user2 := map[string]interface{}{
+		"username": "user2",
+		"email":    "user2@email.com",
 		"password": "123123",
 	}
-	e.POST("/api/register").WithJSON(user7).Expect().Status(httptest.StatusNoContent)
+	e.POST("/api/register").WithJSON(user2).Expect().Status(httptest.StatusNoContent)
 
-	//User6 posts message1
-	user6Token := e.POST("/api/signin").WithJSON(user6).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
+	//User1 posts message1
+	user1Token := e.POST("/api/signin").WithJSON(user1).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
 
 	message1 := map[string]interface{}{
 		"content": "Message1",
 	}
-	e.POST("/api/tweets").WithJSON(message1).WithHeader("Authorization", "Bearer "+user6Token).Expect().Status(httptest.StatusNoContent)
+	e.POST("/api/tweets").WithJSON(message1).WithHeader("Authorization", "Bearer "+user1Token).Expect().Status(httptest.StatusNoContent)
 
 	//User7 posts message2
-	user7Token := e.POST("/api/signin").WithJSON(user7).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
+	user2Token := e.POST("/api/signin").WithJSON(user2).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
 
 	message2 := map[string]interface{}{
 		"content": "Message2",
 	}
-	e.POST("/api/tweets").WithJSON(message2).WithHeader("Authorization", "Bearer "+user7Token).Expect().Status(httptest.StatusNoContent)
+	e.POST("/api/tweets").WithJSON(message2).WithHeader("Authorization", "Bearer "+user2Token).Expect().Status(httptest.StatusNoContent)
 
 	//User6 posts message3
 	message3 := map[string]interface{}{
 		"content": "Message3",
 	}
-	e.POST("/api/tweets").WithJSON(message3).WithHeader("Authorization", "Bearer "+user6Token).Expect().Status(httptest.StatusNoContent)
+	e.POST("/api/tweets").WithJSON(message3).WithHeader("Authorization", "Bearer "+user1Token).Expect().Status(httptest.StatusNoContent)
 
 	//Check if messages are in public timeline
 	tweets := e.GET("/api/tweets").Expect().JSON().Array()
@@ -184,8 +214,8 @@ func TestPrivateTimeline(t *testing.T) {
 
 	// Register user 1
 	user1 := map[string]interface{}{
-		"username": "user11",
-		"email":    "user11@email.com",
+		"username": "user1",
+		"email":    "user1@email.com",
 		"password": "123123",
 	}
 
@@ -193,8 +223,8 @@ func TestPrivateTimeline(t *testing.T) {
 
 	// register user 2
 	user2 := map[string]interface{}{
-		"username": "user21",
-		"email":    "user21@email.com",
+		"username": "user2",
+		"email":    "user2@email.com",
 		"password": "123123",
 	}
 

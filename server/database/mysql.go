@@ -44,7 +44,7 @@ func ConnectMySql(mode string) (*gorm.DB, error) {
 		})
 		db.Use(prometheus.New(prometheusConfiguration(db_name)))
 	} else {
-		db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
+		db, err = gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{
 			Logger: newLogger,
 		})
 	}
