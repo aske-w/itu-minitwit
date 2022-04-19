@@ -7,6 +7,7 @@ volumes:
 
 networks:
   elk:
+    driver: overlay
   main:
     name: itu-minitwit-network
   monitoring: # network for prometheus to scrape in a swarm
@@ -33,6 +34,8 @@ services:
     container_name: minitwit-client
     ports:
       - 80:80
+    networks:
+     - elk
 
   grafana:
     image: grafana/grafana-oss:8.4.3
