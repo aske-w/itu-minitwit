@@ -20,7 +20,7 @@ jobs:
       - name: Install correct version of go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18.0'
+          go-version: '1.17.6'
 
       - name: Format
         working-directory: ./server
@@ -30,19 +30,20 @@ jobs:
         working-directory: ./server
         run: if [ "$(go vet)" -gt 0 ]; then exit 1; fi
 
-      # DOESN'T WORK ANYMORE. Gives this error at random `2022/04/19 10:30:48 internal error: package "aske-w/itu-minitwit/models" without types was imported from "command-line-arguments"`      # - name: Download Gosec
-      #   uses: wei/wget@v1
-      #   with:
-      #     args: -O ./server/install.sh https://raw.githubusercontent.com/securego/gosec/master/install.sh
+      # DOESN'T WORK ANYMORE. Gives this error at random `2022/04/19 10:30:48 internal error: package "aske-w/itu-minitwit/models" without types was imported from "command-line-arguments"`      
+      - name: Download Gosec
+        uses: wei/wget@v1
+        with:
+          args: -O ./server/install.sh https://raw.githubusercontent.com/securego/gosec/master/install.sh
 
-      # - name: Install Gosec version
-      #   working-directory: ./server
-      #   run: sh ./install.sh v2.10.0 
+      - name: Install Gosec version
+        working-directory: ./server
+        run: sh ./install.sh v2.10.0 
 
-      # - name: Run Gosec Security Scanner
-      #   working-directory: ./server
-      #   run: |
-      #     ./bin/gosec -exclude=G104 ./...
+      - name: Run Gosec Security Scanner
+        working-directory: ./server
+        run: |
+          ./bin/gosec -exclude=G104 ./...
 
       - name: Check dependency licenses
         working-directory: ./server
