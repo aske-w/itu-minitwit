@@ -24,6 +24,7 @@ _In each directory you'll find a `.env.example`. You need to create a file calle
 - ./client
 - ./server
 - ./docker_db
+- ./swarm
 
 ## Running
 
@@ -65,7 +66,7 @@ else:
 
 # Digital Ocean.
 
-Floating IP (static ip): `67.207.75.163`
+Floating IP (static ip): `138.68.125.155`
 
 # MacOS
 
@@ -94,7 +95,7 @@ See more here: https://www.vagrantup.com/docs/cli/up
 - `vagrant plugin install vagrant-vbguest`
 - `vagrant plugin install vagrant-reload`
 - `vagrant plugin install vagrant-env` load .env files
-- WMWARE: `vagrant plugin install vagrant-vmware-desktop`
+- VMWARE: `vagrant plugin install vagrant-vmware-desktop`
 
 ## VirtualBox networking
 
@@ -139,7 +140,7 @@ Create .env in root folder and copy the contents of .env.example. Fill out the f
 
 Make sure the `requests`library is installed. You can install it using `pip install requests`.
 Also make sure the library is added to your path afterwards.
-in /python_api_tests: `python3 minitwit_simulator.py "http://67.207.75.163:8080/api"`
+in /python_api_tests: `python3 minitwit_simulator.py "http://localhost:8080/api"`
 
 ## Reading log file on server
 
