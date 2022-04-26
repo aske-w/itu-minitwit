@@ -79,31 +79,32 @@ func NewApp(mode string) *iris.Application {
 		}).Update("latest", latest)
 	}
 
-	// Setup prometheus for monitoring
-
-	var count int64 = 0
-	var avgFollowers float64 = 0
-	usersCount := promauto.NewGauge(prometheus.GaugeOpts{
-		Subsystem: "minitwit",
-		Name:      "total_users_count",
-		Help:      "The total amount of users in the database",
-	})
-	avgFollowersCount := promauto.NewGauge(prometheus.GaugeOpts{
-		Subsystem: "minitwit",
-		Name:      "average_followers_count",
-		Help:      "The total amount of users in the database",
-	})
-	//run non-middleware metrics data collection for in separate thread.
-	// middleware data is collected in ./middleware/prometheusMiddleware.go
-	go func() {
-		for {
-			db.Model(&models.User{}).Count(&count)
-			db.Raw("select ((select count(follower_id) from followers) / (select count(*) from users));").Scan(&avgFollowers)
-			usersCount.Set(float64(count))
-			avgFollowersCount.Set(avgFollowers)
-			time.Sleep(60 * time.Second)
-		}
-	}()
+	// Setup prometheus for monitoring, if mode is production
+	if mode == "production" {
+		var count int64 = 0
+		var avgFollowers float64 = 0
+		usersCount := promauto.NewGauge(prometheus.GaugeOpts{
+			Subsystem: "minitwit",
+			Name:      "total_users_count",
+			Help:      "The total amount of users in the database",
+		})
+		avgFollowersCount := promauto.NewGauge(prometheus.GaugeOpts{
+			Subsystem: "minitwit",
+			Name:      "average_followers_count",
+			Help:      "The total amount of users in the database",
+		})
+		//run non-middleware metrics data collection for in separate thread.
+		// middleware data is collected in ./middleware/prometheusMiddleware.go
+		go func() {
+			for {
+				db.Model(&models.User{}).Count(&count)
+				db.Raw("select ((select count(follower_id) from followers) / (select count(*) from users));").Scan(&avgFollowers)
+				usersCount.Set(float64(count))
+				avgFollowersCount.Set(avgFollowers)
+				time.Sleep(60 * time.Second)
+			}
+		}()
+	}
 
 	// Register middleware
 	app.Use(middleware.InitMiddleware)
