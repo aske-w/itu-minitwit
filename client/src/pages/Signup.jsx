@@ -8,7 +8,7 @@ const Signup = () => {
     const [form, setForm] = useState({
         username: "",
         email: "",
-        password: "",
+        pwd: "",
     })
     const [errors, setErrors] = useState([])
 
@@ -26,7 +26,7 @@ const Signup = () => {
             .then(() => {
                 api.post("/signin", {
                     username: form.username,
-                    password: form.password,
+                    pwd: form.pwd,
                 }).then((response) => {
                     dispatch(login(response.data))
 
@@ -42,10 +42,10 @@ const Signup = () => {
 
     return (
         <div>
-            <h2 className="text-2xl font-semibold mb-4">Sign up</h2>
+            <h2 className="mb-4 text-2xl font-semibold">Sign up</h2>
 
             {errors.length > 0 && (
-                <ul className="bg-red-100 px-3 py-2 my-4 rounded text-red-400 text-sm">
+                <ul className="px-3 py-2 my-4 text-sm text-red-400 bg-red-100 rounded">
                     {errors.map((error) => (
                         <li key={error}>{error}</li>
                     ))}
@@ -66,7 +66,7 @@ const Signup = () => {
                                 type="text"
                                 name="username"
                                 id="username"
-                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="Chose a username"
                                 onChange={handleChange}
                                 autoComplete="off"
@@ -86,7 +86,7 @@ const Signup = () => {
                                 type="email"
                                 name="email"
                                 id="email"
-                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="you@example.com"
                                 onChange={handleChange}
                                 autoComplete="off"
@@ -104,9 +104,9 @@ const Signup = () => {
                         <div className="mt-1">
                             <input
                                 type="password"
-                                name="password"
+                                name="pwd"
                                 id="password"
-                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder="Enter a password"
                                 onChange={handleChange}
                                 autoComplete="off"
@@ -117,7 +117,7 @@ const Signup = () => {
 
                 <button
                     type="submit"
-                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="inline-flex items-center px-4 py-2 mt-4 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                     Sign up
                 </button>
