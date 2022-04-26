@@ -68,6 +68,7 @@ services:
     ports:
       - "9090:9090"
 
+
   s3vol:
     image: elementar/s3-volume
     command: /data s3://${BUCKET_NAME:?err}/prom_data/
@@ -79,6 +80,7 @@ services:
       - affinity:container==prometheus
     volumes:
       - /var/prom_data/:/data
+
 
   cadvisor:
     image: google/cadvisor:v0.24.1
