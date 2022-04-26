@@ -12,4 +12,5 @@ server/itu-minitwit
 .htpasswd
 runner-build-errors.log
 runner-build
-
+*secrets
+*.terraform
