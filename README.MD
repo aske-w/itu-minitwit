@@ -220,3 +220,25 @@ Under `Kibana/Index Patterns` do the following
 Once the index pattern is created navigate `Analytics/Discover` in the sidebar. The select the newly created index pattern.
 
 We can the filter by fields. For example if we only want to see the message of the logs we can under the `Avaliable fields` press the plus icon to filter by messages.
+
+## Docker swarm
+
+### Provisioning
+
+1. In swarm directory run the following files in their respective order:
+      - ```prov.sh```
+      - ```provisioner.sh```
+2. Copy the ```worker_provision.sh``` into your worker nodes and ```manager_provision.sh``` into your manager nodes.
+3. SSH into your manager nodes and run their provisioner scripts.
+4. SSH into your worker nodes and run their provisioner scripts when the provisioner scripts on the managers tell you to.
+5. Finished. The Docker compose file should be deployed into the swarm.
+
+### CI/CD
+
+On each push to ```master``` the ```deploy``` pipeline is started, which starts a new stack with the following command ```docker stack deploy --compose-file docker-compose.yml $STACK_NAME```. Before deploying the stack we need to copy a set of files to the manager and worker node, which are needed for the ```docker-compose.yml```.
+
+### Nodes
+
+Manager node ip: ```165.22.67.59```
+
+Worker node ip: ```165.22.81.184```
