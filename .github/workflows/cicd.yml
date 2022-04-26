@@ -73,8 +73,30 @@ jobs:
         source: "./swarm/filebeat.yml"
         target: "/root"
 
+    - name: put authorized_keys in manager
+      uses: appleboy/scp-action@master
+      with:
+        key: ${{ secrets.XSSH_PRIVATE_KEY }}
+        host: ${{ secrets.XSERVER_IP }}
+        username: ${{ secrets.XSERVER_USER }}
+        port: 22
+        strip_components: 2
+        source: "./swarm/authorized_keys"
+        target: "/root/.ssh"
+
+    - name: put authorized_keys in worker
+      uses: appleboy/scp-action@master
+      with:
+        key: ${{ secrets.XSSH_PRIVATE_KEY }}
+        host: ${{ secrets.WORKER_IP }}
+        username: ${{ secrets.XSERVER_USER }}
+        port: 22
+        strip_components: 2
+        source: "./swarm/authorized_keys"
+        target: "/root/.ssh"
+
   deploy:
-    name: "Deploy to droplet"
+    name: "Deploy to worker droplet"
     needs: copy
     runs-on: ubuntu-latest
     steps:
@@ -89,6 +111,9 @@ jobs:
           cd /root
           chown root filebeat.yml
           chmod go-w filebeat.yml
+
+          mkdir /var/prom_data
+          chown nobody /var/prom_data
 
     - name: Deploy to Digital Ocean droplet via SSH action
       uses: appleboy/ssh-action@v0.1.4
@@ -108,13 +133,18 @@ jobs:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
         ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
         STACK_NAME: ${{ secrets.STACK_NAME }}
+        PROMETHEUS_BACKUP_INTERVAL: ${{ secrets.PROMETHEUS_BACKUP_INTERVAL }}
+        SPACE_ENDPOINT: ${{ secrets.SPACE_ENDPOINT }}
       with:
         key: ${{ secrets.XSSH_PRIVATE_KEY }}
         host: ${{ secrets.XSERVER_IP }}
         username: ${{ secrets.XSERVER_USER }}
         port: 22
-        envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PORT,MYSQL_ADDRESS,MYSQL_PASSWORD,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,STACK_NAME,ACCESS_KEY,SECRET_KEY,BUCKET_NAME
+        envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PORT,MYSQL_ADDRESS,MYSQL_PASSWORD,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,STACK_NAME,ACCESS_KEY,SECRET_KEY,BUCKET_NAME,PROMETHEUS_BACKUP_INTERVAL,SPACE_ENDPOINT
         script: |
+          mkdir /var/prom_data
+          chown nobody /var/prom_data
+
           cd /root
           export DOCKER_USERNAME=$DOCKER_USERNAME
           export MYSQL_USER=$MYSQL_USER
@@ -131,6 +161,8 @@ jobs:
           export ACCESS_KEY=$ACCESS_KEY
           export SECRET_KEY=$SECRET_KEY
           export BUCKET_NAME=$BUCKET_NAME
+          export PROMETHEUS_BACKUP_INTERVAL=$PROMETHEUS_BACKUP_INTERVAL
+          export SPACE_ENDPOINT=$SPACE_ENDPOINT
           
           chown root filebeat.yml
           chmod go-w filebeat.yml

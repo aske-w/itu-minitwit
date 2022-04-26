@@ -58,7 +58,8 @@ services:
     container_name: prometheus
     user: root
     volumes:
-      - ./prometheus/:/etc/prometheus
+      - ./prometheus/:/etc/prometheus/
+      - /var/prom_data/:/prometheus
     depends_on:
       - cadvisor
     networks:
@@ -66,6 +67,19 @@ services:
       - monitoring
     ports:
       - "9090:9090"
+
+
+  s3vol:
+    image: elementar/s3-volume
+    command: /data s3://${BUCKET_NAME:?err}/prom_data/
+    environment:
+      - BACKUP_INTERVAL=${PROMETHEUS_BACKUP_INTERVAL:?err}
+      - AWS_ACCESS_KEY_ID=${ACCESS_KEY:?err}
+      - AWS_SECRET_ACCESS_KEY=${SECRET_KEY:?err}
+      - ENDPOINT_URL=${SPACE_ENDPOINT:?err}
+      - affinity:container==prometheus
+    volumes:
+      - /var/prom_data/:/data
 
 
   cadvisor:

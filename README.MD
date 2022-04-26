@@ -24,6 +24,7 @@ _In each directory you'll find a `.env.example`. You need to create a file calle
 - ./client
 - ./server
 - ./docker_db
+- ./swarm
 
 ## Running
 
@@ -65,7 +66,7 @@ else:
 
 # Digital Ocean.
 
-Floating IP (static ip): `67.207.75.163`
+Floating IP (static ip): `138.68.125.155`
 
 # MacOS
 
@@ -94,7 +95,7 @@ See more here: https://www.vagrantup.com/docs/cli/up
 - `vagrant plugin install vagrant-vbguest`
 - `vagrant plugin install vagrant-reload`
 - `vagrant plugin install vagrant-env` load .env files
-- WMWARE: `vagrant plugin install vagrant-vmware-desktop`
+- VMWARE: `vagrant plugin install vagrant-vmware-desktop`
 
 ## VirtualBox networking
 
@@ -139,7 +140,7 @@ Create .env in root folder and copy the contents of .env.example. Fill out the f
 
 Make sure the `requests`library is installed. You can install it using `pip install requests`.
 Also make sure the library is added to your path afterwards.
-in /python_api_tests: `python3 minitwit_simulator.py "http://67.207.75.163:8080/api"`
+in /python_api_tests: `python3 minitwit_simulator.py "http://localhost:8080/api"`
 
 ## Reading log file on server
 
@@ -221,31 +222,24 @@ Once the index pattern is created navigate `Analytics/Discover` in the sidebar. 
 
 We can the filter by fields. For example if we only want to see the message of the logs we can under the `Avaliable fields` press the plus icon to filter by messages.
 
-
 ## Docker swarm
-
 
 ### Provisioning
 
-In swarm directory run the following files in their respective order:
+1. In swarm directory run the following files in their respective order:
+      - ```prov.sh```
+      - ```provisioner.sh```
+2. Copy the ```worker_provision.sh``` into your worker nodes and ```manager_provision.sh``` into your manager nodes.
+3. SSH into your manager nodes and run their provisioner scripts.
+4. SSH into your worker nodes and run their provisioner scripts when the provisioner scripts on the managers tell you to.
+5. Finished. The Docker compose file should be deployed into the swarm.
 
-- prov.sh
+### CI/CD
 
--
+On each push to ```master``` the ```deploy``` pipeline is started, which starts a new stack with the following command ```docker stack deploy --compose-file docker-compose.yml $STACK_NAME```. Before deploying the stack we need to copy a set of files to the manager and worker node, which are needed for the ```docker-compose.yml```.
+
 ### Nodes
 
 Manager node ip: ```165.22.67.59```
 
 Worker node ip: ```165.22.81.184```
-
-### manager
-username: manager
-password: 
-
-### worker1
-username: worker1
-password: 
-
-### worker2
-username: worker2
-password: 
