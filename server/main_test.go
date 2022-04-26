@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/kataras/iris/v12/httptest"
 )
@@ -19,7 +20,7 @@ func TestRegister(t *testing.T) {
 
 	form := map[string]interface{}{
 		"username": "user",
-		"password": "123123",
+		"pwd":      "123123",
 		"email":    "user@gmail.com",
 	}
 
@@ -33,7 +34,7 @@ func TestRegisterWithExistingCredentials(t *testing.T) {
 
 	form := map[string]interface{}{
 		"username": "user",
-		"password": "123123",
+		"pwd":      "123123",
 		"email":    "user@gmail.com",
 	}
 
@@ -47,7 +48,7 @@ func TestSigninWithNonexistingCredentials(t *testing.T) {
 
 	form := map[string]interface{}{
 		"username": "nonexistinguser",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 
 	e.POST("/api/signin").WithJSON(form).Expect().Status(httptest.StatusBadRequest).JSON().Object().Raw()
@@ -59,7 +60,7 @@ func TestRegisterAndSignin(t *testing.T) {
 
 	form1 := map[string]interface{}{
 		"username": "user",
-		"password": "123123",
+		"pwd":      "123123",
 		"email":    "user@gmail.com",
 	}
 
@@ -67,7 +68,7 @@ func TestRegisterAndSignin(t *testing.T) {
 
 	form2 := map[string]interface{}{
 		"username": "user",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 
 	e.POST("/api/signin").WithJSON(form2).Expect().Status(httptest.StatusOK)
@@ -80,7 +81,7 @@ func TestRegisterAndSigninAndPostMessage(t *testing.T) {
 	// Register
 	form := map[string]interface{}{
 		"username": "user",
-		"password": "123123",
+		"pwd":      "123123",
 		"email":    "user@gmail.com",
 	}
 	e.POST("/api/register").WithJSON(form).Expect().Status(httptest.StatusNoContent)
@@ -88,7 +89,7 @@ func TestRegisterAndSigninAndPostMessage(t *testing.T) {
 	//Sign in
 	form2 := map[string]interface{}{
 		"username": "user",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 
 	token := e.POST("/api/signin").WithJSON(form2).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
@@ -123,18 +124,18 @@ func TestFollowAndUnfollow(t *testing.T) {
 	userFollowingForm := map[string]interface{}{
 		"username": "user1",
 		"email":    "user1@email.com",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 
 	userToFollowForm := map[string]interface{}{
 		"username": "user2",
 		"email":    "user2@email.com",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 
 	userFollowingSigninForm := map[string]interface{}{
 		"username": userFollowingForm["username"],
-		"password": userFollowingForm["password"],
+		"pwd":      userFollowingForm["pwd"],
 	}
 
 	e.POST("/api/register").WithJSON(userFollowingForm).Expect().Status(httptest.StatusNoContent)
@@ -165,37 +166,49 @@ func TestPublicTimeline(t *testing.T) {
 	user1 := map[string]interface{}{
 		"username": "user1",
 		"email":    "user1@email.com",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 	e.POST("/api/register").WithJSON(user1).Expect().Status(httptest.StatusNoContent)
 	//Register user2
 	user2 := map[string]interface{}{
 		"username": "user2",
 		"email":    "user2@email.com",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 	e.POST("/api/register").WithJSON(user2).Expect().Status(httptest.StatusNoContent)
 
+	user1SignIn := map[string]interface{}{
+		"username": user1["username"],
+		"pwd":      user1["pwd"],
+	}
 	//User1 posts message1
-	user1Token := e.POST("/api/signin").WithJSON(user1).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
+	user1Token := e.POST("/api/signin").WithJSON(user1SignIn).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
 
 	message1 := map[string]interface{}{
 		"content": "Message1",
 	}
 	e.POST("/api/tweets").WithJSON(message1).WithHeader("Authorization", "Bearer "+user1Token).Expect().Status(httptest.StatusNoContent)
 
-	//User7 posts message2
-	user2Token := e.POST("/api/signin").WithJSON(user2).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
+	user2SignIn := map[string]interface{}{
+		"username": user2["username"],
+		"pwd":      user2["pwd"],
+	}
+
+	//User2 posts message2
+	user2Token := e.POST("/api/signin").WithJSON(user2SignIn).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
 
 	message2 := map[string]interface{}{
 		"content": "Message2",
 	}
+	time.Sleep(time.Second)
 	e.POST("/api/tweets").WithJSON(message2).WithHeader("Authorization", "Bearer "+user2Token).Expect().Status(httptest.StatusNoContent)
 
 	//User6 posts message3
 	message3 := map[string]interface{}{
 		"content": "Message3",
 	}
+	time.Sleep(time.Second)
+
 	e.POST("/api/tweets").WithJSON(message3).WithHeader("Authorization", "Bearer "+user1Token).Expect().Status(httptest.StatusNoContent)
 
 	//Check if messages are in public timeline
@@ -216,7 +229,7 @@ func TestPrivateTimeline(t *testing.T) {
 	user1 := map[string]interface{}{
 		"username": "user1",
 		"email":    "user1@email.com",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 
 	e.POST("/api/register").WithJSON(user1).Expect().Status(httptest.StatusNoContent)
@@ -225,7 +238,7 @@ func TestPrivateTimeline(t *testing.T) {
 	user2 := map[string]interface{}{
 		"username": "user2",
 		"email":    "user2@email.com",
-		"password": "123123",
+		"pwd":      "123123",
 	}
 
 	e.POST("/api/register").WithJSON(user2).Expect().Status(httptest.StatusNoContent)
@@ -233,7 +246,7 @@ func TestPrivateTimeline(t *testing.T) {
 	//Sign in to user 1 to grab bearer token
 	signedInUser1 := map[string]interface{}{
 		"username": user1["username"],
-		"password": user1["password"],
+		"pwd":      user1["pwd"],
 	}
 
 	user1token := e.POST("/api/signin").WithJSON(signedInUser1).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
@@ -241,7 +254,7 @@ func TestPrivateTimeline(t *testing.T) {
 	//Sign in to user 1 to grab bearer token
 	signedInUser2 := map[string]interface{}{
 		"username": user2["username"],
-		"password": user2["password"],
+		"pwd":      user2["pwd"],
 	}
 
 	user2token := e.POST("/api/signin").WithJSON(signedInUser2).Expect().Status(httptest.StatusOK).JSON().Object().Raw()["access_token"].(string)
@@ -266,6 +279,8 @@ func TestPrivateTimeline(t *testing.T) {
 	message2 := map[string]interface{}{
 		"content": "Message from user2",
 	}
+
+	time.Sleep(time.Second)
 	e.POST("/api/tweets").WithJSON(message2).WithHeader("Authorization", "Bearer "+user2token).Expect().Status(httptest.StatusNoContent)
 
 	// user 1 checks private timeline to find the msgs
