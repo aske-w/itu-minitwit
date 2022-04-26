@@ -10,45 +10,45 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: "Build and push"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v2
+  # build:
+  #   name: "Build and push"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout branch
+  #       uses: actions/checkout@v2
 
-      - name: Login to Dockerhub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  #     - name: Login to Dockerhub
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push api docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest . -f ./server/Dockerfile
-          docker push ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
+  #     - name: Build and push api docker image
+  #       run: |
+  #         docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest . -f ./server/Dockerfile
+  #         docker push ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
 
-      - name: Build and push client docker image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest . -f ./client/Dockerfile
-          docker push ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest
+  #     - name: Build and push client docker image
+  #       run: |
+  #         docker build -t ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest . -f ./client/Dockerfile
+  #         docker push ${{ secrets.DOCKER_USERNAME }}/minitwit-client:latest
 
-  # Doesnt work ATM, see https://github.com/Azure/container-scan/issues/122
-  # Instead we have set up snyk.io to continuesly monitor our container directly from Docker Hub
-  scan:
-    name: "Scan the container"
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: Azure/container-scan@v0
-        with:
-          image-name: ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  # # Doesnt work ATM, see https://github.com/Azure/container-scan/issues/122
+  # # Instead we have set up snyk.io to continuesly monitor our container directly from Docker Hub
+  # scan:
+  #   name: "Scan the container"
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: Azure/container-scan@v0
+  #       with:
+  #         image-name: ${{ secrets.DOCKER_USERNAME }}/minitwitimage:latest
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
 
   copy:
     name: "Copy docker-compose file"
-    needs: build
+    # needs: build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -96,7 +96,7 @@ jobs:
         target: "/root/.ssh"
 
   deploy:
-    name: "Deploy to droplet"
+    name: "Deploy to worker droplet"
     needs: copy
     runs-on: ubuntu-latest
     steps:
@@ -111,6 +111,9 @@ jobs:
           cd /root
           chown root filebeat.yml
           chmod go-w filebeat.yml
+
+          mkdir /var/prom_data
+          chown nobody /var/prom_data
 
     - name: Deploy to Digital Ocean droplet via SSH action
       uses: appleboy/ssh-action@v0.1.4
@@ -130,13 +133,18 @@ jobs:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
         ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
         STACK_NAME: ${{ secrets.STACK_NAME }}
+        PROMETHEUS_BACKUP_INTERVAL: ${{ secrets.PROMETHEUS_BACKUP_INTERVAL }}
+        SPACE_ENDPOINT: ${{ secrets.SPACE_ENDPOINT }}
       with:
         key: ${{ secrets.XSSH_PRIVATE_KEY }}
         host: ${{ secrets.XSERVER_IP }}
         username: ${{ secrets.XSERVER_USER }}
         port: 22
-        envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PORT,MYSQL_ADDRESS,MYSQL_PASSWORD,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,STACK_NAME,ACCESS_KEY,SECRET_KEY,BUCKET_NAME
+        envs: DOCKER_USERNAME,MYSQL_USER,MYSQL_DATABASE,MYSQL_PORT,MYSQL_ADDRESS,MYSQL_PASSWORD,GRAFANA_ADMIN_USERNAME,GRAFANA_ADMIN_PASSWORD,ELK_USER,ELASTIC_USER,ELASTIC_PASSWORD,STACK_NAME,ACCESS_KEY,SECRET_KEY,BUCKET_NAME,PROMETHEUS_BACKUP_INTERVAL,SPACE_ENDPOINT
         script: |
+          mkdir /var/prom_data
+          chown nobody /var/prom_data
+
           cd /root
           export DOCKER_USERNAME=$DOCKER_USERNAME
           export MYSQL_USER=$MYSQL_USER
@@ -153,6 +161,8 @@ jobs:
           export ACCESS_KEY=$ACCESS_KEY
           export SECRET_KEY=$SECRET_KEY
           export BUCKET_NAME=$BUCKET_NAME
+          export PROMETHEUS_BACKUP_INTERVAL=$PROMETHEUS_BACKUP_INTERVAL
+          export SPACE_ENDPOINT=$SPACE_ENDPOINT
           
           chown root filebeat.yml
           chmod go-w filebeat.yml
@@ -160,21 +170,21 @@ jobs:
           docker-compose pull
           docker stack deploy --compose-file docker-compose.yml $STACK_NAME
 
-  versioning:
-    name: "Tag and release"
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: major
-      - name: Create a GitHub release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+  # versioning:
+  #   name: "Tag and release"
+  #   needs: deploy
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Bump version and push tag
+  #       id: tag_version
+  #       uses: mathieudutour/github-tag-action@v6.0
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         default_bump: major
+  #     - name: Create a GitHub release
+  #       uses: ncipollo/release-action@v1
+  #       with:
+  #         tag: ${{ steps.tag_version.outputs.new_tag }}
+  #         name: Release ${{ steps.tag_version.outputs.new_tag }}
+  #         body: ${{ steps.tag_version.outputs.changelog }}
