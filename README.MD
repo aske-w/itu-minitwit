@@ -216,7 +216,7 @@ Under `Kibana/Index Patterns` do the following
 
 - Type `itu-minitwit-*` as the name.
 
-- Select the `@timestamp`
+- Select the `@timestamp`.
 
 Once the index pattern is created navigate `Analytics/Discover` in the sidebar. The select the newly created index pattern.
 

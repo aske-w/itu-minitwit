@@ -36,12 +36,12 @@ var authService services.AuthService
 var timelineService services.TimelineService
 var messageService services.MessageService
 
-func main() {
+func NewApp(mode string) *iris.Application {
 	app := iris.Default()
 
 	environment.InitEnv()
 
-	db, err := database.ConnectMySql()
+	db, err := database.ConnectMySql(mode)
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
 	}
@@ -79,31 +79,32 @@ func main() {
 		}).Update("latest", latest)
 	}
 
-	// Setup prometheus for monitoring
-
-	var count int64 = 0
-	var avgFollowers float64 = 0
-	usersCount := promauto.NewGauge(prometheus.GaugeOpts{
-		Subsystem: "minitwit",
-		Name:      "total_users_count",
-		Help:      "The total amount of users in the database",
-	})
-	avgFollowersCount := promauto.NewGauge(prometheus.GaugeOpts{
-		Subsystem: "minitwit",
-		Name:      "average_followers_count",
-		Help:      "The total amount of users in the database",
-	})
-	//run non-middleware metrics data collection for in separate thread.
-	// middleware data is collected in ./middleware/prometheusMiddleware.go
-	go func() {
-		for {
-			db.Model(&models.User{}).Count(&count)
-			db.Raw("select ((select count(follower_id) from followers) / (select count(*) from users));").Scan(&avgFollowers)
-			usersCount.Set(float64(count))
-			avgFollowersCount.Set(avgFollowers)
-			time.Sleep(60 * time.Second)
-		}
-	}()
+	// Setup prometheus for monitoring, if mode is production
+	if mode == "production" {
+		var count int64 = 0
+		var avgFollowers float64 = 0
+		usersCount := promauto.NewGauge(prometheus.GaugeOpts{
+			Subsystem: "minitwit",
+			Name:      "total_users_count",
+			Help:      "The total amount of users in the database",
+		})
+		avgFollowersCount := promauto.NewGauge(prometheus.GaugeOpts{
+			Subsystem: "minitwit",
+			Name:      "average_followers_count",
+			Help:      "The total amount of users in the database",
+		})
+		//run non-middleware metrics data collection for in separate thread.
+		// middleware data is collected in ./middleware/prometheusMiddleware.go
+		go func() {
+			for {
+				db.Model(&models.User{}).Count(&count)
+				db.Raw("select ((select count(follower_id) from followers) / (select count(*) from users));").Scan(&avgFollowers)
+				usersCount.Set(float64(count))
+				avgFollowersCount.Set(avgFollowers)
+				time.Sleep(60 * time.Second)
+			}
+		}()
+	}
 
 	// Register middleware
 	app.Use(middleware.InitMiddleware)
@@ -128,6 +129,11 @@ func main() {
 	app.Post("/api/register", signupHandler(db, updateLatest))
 	app.Post("/api/fllws/{username}", simulatorFollowHandler(updateLatest))
 
+	return app
+}
+
+func main() {
+	app := NewApp("production")
 	app.Listen(":8080")
 }
 
@@ -301,8 +307,7 @@ func userTweets(db *gorm.DB) iris.Handler {
 		tweets, tlErr := timelineService.GetUserTimeline(userId)
 		if err != nil || tlErr != nil {
 			ctx.StatusCode(404)
-			ctx.JSON(iris.Map{"error": "Tweets not found"})
-
+			ctx.JSON(iris.Map{"error": "User not found"})
 			return
 		}
 
@@ -486,7 +491,7 @@ func signupHandler(db *gorm.DB, updateLatest func(map[string]string)) iris.Handl
 
 type LoginRequest struct {
 	Username string `json:"username"`
-	Password string `json:"password"`
+	Password string `json:"pwd"`
 }
 
 func signinHandler(signer *jwt.Signer, db *gorm.DB) iris.Handler {
