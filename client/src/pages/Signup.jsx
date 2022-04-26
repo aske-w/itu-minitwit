@@ -1,22 +1,22 @@
-import React, { useState } from 'react'
-import api from '../api'
-import { login } from '../reducers/auth'
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from 'react-redux'
+import React, { useState } from "react"
+import api from "../api"
+import { login } from "../reducers/auth"
+import { useNavigate } from "react-router-dom"
+import { useDispatch } from "react-redux"
 
 const Signup = () => {
     const [form, setForm] = useState({
         username: "",
         email: "",
-        pwd: "",
+        password: "",
     })
     const [errors, setErrors] = useState([])
 
     const navigate = useNavigate()
-	const dispatch = useDispatch()
+    const dispatch = useDispatch()
 
     const handleChange = (event) => {
-        setForm({...form, [event.target.name]: event.target.value})
+        setForm({ ...form, [event.target.name]: event.target.value })
     }
 
     function handleSubmit(e) {
@@ -26,14 +26,14 @@ const Signup = () => {
             .then(() => {
                 api.post("/signin", {
                     username: form.username,
-                    password: form.pwd,
-                }).then(response => {
+                    password: form.password,
+                }).then((response) => {
                     dispatch(login(response.data))
 
                     navigate("/")
                 })
             })
-            .catch(error => {
+            .catch((error) => {
                 if ([400, 422].includes(error.response.status)) {
                     setErrors(error.response.data.errors)
                 }
@@ -44,16 +44,21 @@ const Signup = () => {
         <div>
             <h2 className="text-2xl font-semibold mb-4">Sign up</h2>
 
-            { errors.length > 0 &&
+            {errors.length > 0 && (
                 <ul className="bg-red-100 px-3 py-2 my-4 rounded text-red-400 text-sm">
-                    { errors.map((error) => <li key={error}>{error}</li>) }
+                    {errors.map((error) => (
+                        <li key={error}>{error}</li>
+                    ))}
                 </ul>
-            }
+            )}
 
             <form className="mt-4" action="POST" onSubmit={handleSubmit}>
                 <div className="space-y-4">
                     <div>
-                        <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="username"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             Username
                         </label>
                         <div className="mt-1">
@@ -70,7 +75,10 @@ const Signup = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="email"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             Email
                         </label>
                         <div className="mt-1">
@@ -87,13 +95,16 @@ const Signup = () => {
                     </div>
 
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="password"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             Password
                         </label>
                         <div className="mt-1">
                             <input
                                 type="password"
-                                name="pwd"
+                                name="password"
                                 id="password"
                                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                 placeholder="Enter a password"

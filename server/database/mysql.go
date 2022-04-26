@@ -11,13 +11,14 @@ import (
 
 	// "github.com/glebarez/sqlite" // Pure go SQLite driver, checkout https://github.com/glebarez/sqlite for details
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/plugin/prometheus"
 )
 
 // github.com/mattn/go-sqlite3
-func ConnectMySql() (*gorm.DB, error) {
+func ConnectMySql(mode string) (*gorm.DB, error) {
 
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -34,15 +35,20 @@ func ConnectMySql() (*gorm.DB, error) {
 	port := os.Getenv("MYSQL_PORT")
 	db_name := os.Getenv("MYSQL_DATABASE")
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, address, port, db_name)
+	var db *gorm.DB
+	var err error
+	if mode == "production" {
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, address, port, db_name)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: newLogger,
-	})
-
-	db.Use(prometheus.New(prometheusConfiguration(db_name)))
-
-	// conn, err := sql.Open("sqlite3", "./db.db")
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			Logger: newLogger,
+		})
+		db.Use(prometheus.New(prometheusConfiguration(db_name)))
+	} else {
+		db, err = gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{
+			Logger: newLogger,
+		})
+	}
 
 	if err != nil {
 		return nil, err

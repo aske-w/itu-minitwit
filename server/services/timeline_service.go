@@ -37,7 +37,7 @@ func NewTimelineService(db *gorm.DB) *TimelineService {
 func (s *TimelineService) GetPublicTimeline() (*[]Tweet, error) {
 
 	tweets := []Tweet{}
-	err := s.DB.Model(&models.User{}).Select("users.id as UserId", "users.Username", "users.Email", "messages.id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
+	err := s.DB.Model(&models.User{}).Select("users.id as UserId", "users.Username", "users.Email", "messages.id as Message_id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
 
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (s *TimelineService) GetPublicTimeline() (*[]Tweet, error) {
 func (s *TimelineService) GetUserTimeline(userId int) (*[]Tweet, error) {
 
 	tweets := []Tweet{}
-	err := s.DB.Model(&models.User{}).Where("users.id = ?", userId).Select("users.id as UserId", "users.Username", "users.Email", "messages.id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
+	err := s.DB.Model(&models.User{}).Where("users.id = ?", userId).Select("users.id as UserId", "users.Username", "users.Email", "messages.id as Message_id", "messages.Author_id", "messages.Text", "messages.Pub_date", "messages.Flagged").Joins("INNER JOIN messages ON messages.author_id = users.id AND messages.flagged = 0").Order("messages.pub_date DESC").Limit(30).Scan(&tweets).Error
 
 	if err != nil {
 		return nil, err
@@ -62,23 +62,12 @@ func (s *TimelineService) GetUserTimeline(userId int) (*[]Tweet, error) {
 func (s *TimelineService) GetPrivateTimeline(userId int) (*[]Tweet, error) {
 
 	tweets := []Tweet{}
-	err := s.DB.Raw(`
-		SELECT
-			messages.id AS Message_id,
-			messages.Author_id,
-			messages.Text,
-			messages.Pub_date,
-			messages.Flagged,
-			users.id AS UserId,
-			users.Username,
-			users.Email
-		FROM followers
-		JOIN messages ON followers.follower_id = messages.author_id
-		JOIN users ON followers.follower_id = users.id
-		WHERE user_id = ? AND flagged = 0
-		ORDER BY messages.pub_date DESC
-		LIMIT ?
-	`, userId, 30).Scan(&tweets).Error
+	err := s.DB.Raw(`SELECT users.id as UserId, users.Username, users.Email, messages.id as Message_id, messages.Author_id, messages.Text, messages.Pub_date, messages.Flagged from users, messages where messages.flagged = 0 and messages.author_id = users.id and (
+		users.id = ? or
+		users.id in (select follower_id from followers
+								where user_id = ?))
+		order by messages.pub_date DESC limit ?
+	`, userId, userId, 30).Scan(&tweets).Error
 
 	if err != nil {
 		return nil, err
