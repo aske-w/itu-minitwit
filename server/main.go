@@ -450,7 +450,7 @@ func signupHandler(db *gorm.DB, updateLatest func(map[string]string)) iris.Handl
 
 type LoginRequest struct {
 	Username string `json:"username"`
-	Password string `json:"password"`
+	Password string `json:"pwd"`
 }
 
 func signinHandler(signer *jwt.Signer, db *gorm.DB) iris.Handler {
