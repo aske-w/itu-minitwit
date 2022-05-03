@@ -5,7 +5,7 @@ on:
 
 jobs: 
   provision:
-    name: Deploy Site
+    name: Provision
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -41,8 +41,8 @@ jobs:
 
           echo "Setting pub and private keys"
 
-          export PRIV_KEY=${{ secrets.PROV_SSH_PRIVATE }}
-          export PUB_KEY=${{ secrets.PROV_SSH_PUBLIC }}
+          export PRIV_KEY="${{ secrets.PROV_SSH_PRIVATE }}"
+          export PUB_KEY="${{ secrets.PROV_SSH_PUBLIC }}"
           mkdir ssh_key
           echo "Created dir"
           echo $PRIV_KEY > ./ssh_key/terraform
