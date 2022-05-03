@@ -45,7 +45,11 @@ jobs:
           echo ${{ secrets.PROV_SSH_PRIVATE }} > ./ssh_key/terraform
           echo ${{ secrets.PROV_SSH_PUBLIC }} > ./ssh_key/terraform.pub
       
-          chmod +x ./bootstrap.sh && ./bootstrap.sh
+          chmod +x ./bootstrap.sh
+          echo "chmodded bootstrap"
+          pwd
+          ls
+          ./bootstrap.sh
 
 
 
