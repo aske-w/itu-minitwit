@@ -42,7 +42,9 @@ jobs:
           echo "Setting pub and private keys"
 
           mkdir ssh_key
+          echo "Created dir"
           echo ${{ secrets.PROV_SSH_PRIVATE }} > ./ssh_key/terraform
+            echo "Created private key"
           echo ${{ secrets.PROV_SSH_PUBLIC }} > ./ssh_key/terraform.pub
       
           chmod +x ./bootstrap.sh
