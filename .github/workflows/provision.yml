@@ -19,6 +19,9 @@ jobs:
 
       - name: start provision script
         working-directory: ./terraform
+        env: 
+          PROV_KEY: ${{ secrets.PROV_SSH_PUBLIC }}
+          PRIV_KEY: ${{ secrets.PRIV_SSH_PUBLIC }}
         run: |
           echo "Setting backend secrets"
 
@@ -38,12 +41,6 @@ jobs:
           export TF_VAR_stack_name=${{ secrets.STACK_NAME }}
           export TF_VAR_prometheus_backup_interval=${{ secrets.PROMETHEUS_BACKUP_INTERVAL }}
           export TF_VAR_space_endpoint=${{ secrets.SPACE_ENDPOINT }}
-
-          echo "Setting pub and private keys"
-
-          export PRIV_KEY="${{ secrets.PROV_SSH_PRIVATE }}"
-          export PUB_KEY="${{ secrets.PROV_SSH_PUBLIC }}"
-
 
           echo $PRIV_KEY
           echo $PUB_KEY
