@@ -14,3 +14,4 @@ runner-build-errors.log
 runner-build
 *secrets
 *.terraform
+shh_key
