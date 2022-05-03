@@ -46,9 +46,9 @@ jobs:
           pwd
           ls
           echo "Created dir"
-          echo ${{ secrets.PROV_SSH_PUBLIC }} | base64 -d > ./ssh_key/terraform
-          echo "Created private key"
           echo ${{ secrets.PROV_SSH_PUBLIC }} | base64 -d > ./ssh_key/terraform.pub
+          echo "Created private key"
+          echo ${{ secrets.PROV_SSH_PRIVATE }} | base64 -d > ./ssh_key/terraform
       
           echo "Reading public key"
           cat ./ssh_key/terraform.pub
