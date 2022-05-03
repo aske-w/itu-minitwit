@@ -1,0 +1,54 @@
+name: Provision server
+
+on: 
+  workflow_dispatch:
+
+jobs: 
+  provision:
+    name: Deploy Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Download jq
+        uses: sergeysova/jq-action@v2
+
+      - name: Download Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: start provision script
+        working-directory: ./terraform
+        run: |
+          echo "Setting backend secrets"
+
+          export ACCESS_KEY=${{ secrets.ACCESS_KEY }}
+          export SECRET_KEY=${{ secrets.SECRET_KEY }}
+          export STATE_FILE=${{ secrets.STATE_FILE }}
+          export BUCKET_NAME=${{ secrets.BUCKET_NAME }}
+
+          echo "Setting other secrets"
+
+          export TF_VAR_do_token=${{ secrets.TF_VAR_do_token }}
+          export TF_VAR_state_file=STATE_FILE
+          export TF_VAR_manager_ip=${{ secrets.XSERVER_IP }}
+          export TF_VAR_bucket_name=BUCKET_NAME
+          export TF_VAR_access_key=ACCESS_KEY
+          export TF_VAR_secret_key=SECRET_KEY
+          export TF_VAR_stack_name=${{ secrets.STACK_NAME }}
+          export TF_VAR_prometheus_backup_interval=${{ secrets.PROMETHEUS_BACKUP_INTERVAL }}
+          export TF_VAR_space_endpoint=${{ secrets.SPACE_ENDPOINT }}
+
+          echo "Setting pub and private keys"
+
+          mkdir ssh_key
+          echo ${{ secrets.PROV_SSH_PRIVATE }} > ./ssh_key/terraform
+          echo ${{ secrets.PROV_SSH_PUBLIC }} > ./ssh_key/terraform.pub
+
+          sh ./bootstrap.sh
+
+
+
+
+
+
