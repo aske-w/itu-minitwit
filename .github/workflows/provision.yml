@@ -52,9 +52,9 @@ jobs:
           pwd
           ls
           echo "Created dir"
-          echo $PRIV_KEY > /var/terraform_provision/ssh_key/terraform
+          echo $PRIV_KEY > ./ssh_key/terraform
           echo "Created private key"
-          echo $PUB_KEY > /var/terraform_provision/ssh_key/terraform.pub
+          echo $PUB_KEY > ./ssh_key/terraform.pub
       
           chmod +x ./bootstrap.sh
           echo "chmodded bootstrap"
