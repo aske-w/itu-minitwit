@@ -8,7 +8,7 @@ source secrets
 
 echo -e "\n--> Checking that environment variables are set\n"
 # check that all variables are set
-[ -z "$TF_VAR_DOTOKEN" ] && echo "TF_VAR_DOTOKEN is not set" && exit
+[ -z "$TF_VAR_do_token" ] && echo "TF_VAR_do_token is not set" && exit
 [ -z "$BUCKET_NAME" ] && echo "BUCKET_NAME is not set" && exit
 [ -z "$STATE_FILE" ] && echo "STATE_FILE is not set" && exit
 [ -z "$ACCESS_KEY" ] && echo "ACCESS_KEY is not set" && exit

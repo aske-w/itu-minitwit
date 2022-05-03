@@ -8,5 +8,5 @@ worker_size="s-1vcpu-1gb"
 worker_name="worker"
 image="docker-18-04"
 region="fra1"
-pub_key = file("~/.ssh/id_rsa.pub")
-pvt_key = file("~/.ssh/id_rsa")
+pub_key = "ssh_key/terraform.pub"
+pvt_key = "ssh_key/terraform"
