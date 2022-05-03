@@ -19,9 +19,6 @@ jobs:
 
       - name: start provision script
         working-directory: ./terraform
-        env: 
-          PROV_KEY: ${{ secrets.PROV_SSH_PUBLIC }}
-          PRIV_KEY: ${{ secrets.PRIV_SSH_PUBLIC }}
         run: |
           echo "Setting backend secrets"
 
@@ -49,9 +46,9 @@ jobs:
           pwd
           ls
           echo "Created dir"
-          echo $PRIV_KEY > ./ssh_key/terraform
+          echo ${{ secrets.PROV_SSH_PUBLIC }} | base64 -d > ./ssh_key/terraform
           echo "Created private key"
-          echo $PUB_KEY > ./ssh_key/terraform.pub
+          echo ${{ secrets.PROV_SSH_PUBLIC }} | base64 -d > ./ssh_key/terraform.pub
       
           echo "Reading public key"
           cat ./ssh_key/terraform.pub
