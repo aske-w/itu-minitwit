@@ -56,6 +56,12 @@ jobs:
           echo "Created private key"
           echo $PUB_KEY > ./ssh_key/terraform.pub
       
+          echo "Reading public key"
+          cat ./ssh_key/terraform.pub
+
+          echo "Reading private key"
+          cat ./ssh_key/terraform
+
           chmod +x ./bootstrap.sh
           echo "chmodded bootstrap"
           pwd
