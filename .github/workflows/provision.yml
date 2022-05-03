@@ -43,7 +43,12 @@ jobs:
 
           export PRIV_KEY="${{ secrets.PROV_SSH_PRIVATE }}"
           export PUB_KEY="${{ secrets.PROV_SSH_PUBLIC }}"
-          mkdir ssh_key
+
+
+          echo $PRIV_KEY
+          echo $PUB_KEY
+
+          mkdir -p /var/terraform_provision/ssh_key/
           echo "Created dir"
           echo $PRIV_KEY > /var/terraform_provision/ssh_key/terraform
           echo "Created private key"
