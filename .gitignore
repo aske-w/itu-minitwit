@@ -15,4 +15,4 @@ runner-build
 *secrets
 *.terraform
 terraform/temp
-terraform/shh_key
+terraform/ssh_key
