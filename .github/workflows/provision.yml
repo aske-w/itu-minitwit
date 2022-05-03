@@ -49,6 +49,7 @@ jobs:
           echo $PUB_KEY
 
           mkdir -p /var/terraform_provision/ssh_key/
+          chown -R root /var/terraform_provision/ssh_key/
           echo "Created dir"
           echo $PRIV_KEY > /var/terraform_provision/ssh_key/terraform
           echo "Created private key"
