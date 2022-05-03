@@ -44,8 +44,8 @@ jobs:
           mkdir ssh_key
           echo ${{ secrets.PROV_SSH_PRIVATE }} > ./ssh_key/terraform
           echo ${{ secrets.PROV_SSH_PUBLIC }} > ./ssh_key/terraform.pub
-
-          sh ./bootstrap.sh
+      
+          chmod +x ./bootstrap.sh && ./bootstrap.sh
 
 
 
