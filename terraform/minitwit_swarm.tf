@@ -17,7 +17,7 @@ resource "digitalocean_droplet" "swarm-manager" {
     host = self.ipv4_address
     type = "ssh"
     private_key = file(var.pvt_key)
-    timeout = "1m"
+    timeout = "5m"
   }
 
   # Prometheus
@@ -144,6 +144,11 @@ resource "digitalocean_droplet" "swarm-worker" {
       "docker swarm join --token $(cat /root/worker_token.txt) ${digitalocean_droplet.swarm-manager.ipv4_address}:2377"
     ]
   }
+
+  # TODO this will cause workers except the first to probably not have services running in them
+  # provisioner "local-exec" {
+  #   command = "ssh -o 'StrictHostKeyChecking no' root@${digitalocean_droplet.swarm-manager.ipv4_address} -i ssh_key/terraform 'docker stack deploy --compose-file /root/docker-compose.yml minitwit'"
+  # }
 }
 
 output "swarm-manager-ip-address" {
