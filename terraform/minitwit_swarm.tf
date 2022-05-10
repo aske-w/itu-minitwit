@@ -68,6 +68,9 @@ resource "digitalocean_droplet" "swarm-manager" {
     command = "mkdir temp"
   }
   provisioner "local-exec" {
+    command = "chmod -R 600 ssh_key"
+  }
+  provisioner "local-exec" {
     command = "ssh -o 'StrictHostKeyChecking no' root@${self.ipv4_address} -i ssh_key/terraform 'docker swarm join-token worker -q' > temp/worker_token.txt"
   }
 }
