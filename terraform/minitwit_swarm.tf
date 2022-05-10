@@ -9,7 +9,7 @@ resource "digitalocean_droplet" "swarm-manager" {
   name = var.manager_name
   region = var.region
   size = var.manager_size
-  ssh_keys = [digitalocean_ssh_key.*.fingerprint]
+  ssh_keys = [digitalocean_ssh_key.minitwit.fingerprint]
   # public_key = var.pub_key
 
   connection {
@@ -18,6 +18,12 @@ resource "digitalocean_droplet" "swarm-manager" {
     type = "ssh"
     private_key = file(var.pvt_key)
     timeout = "5m"
+  }
+
+  # Prometheus
+  provisioner "file" {
+    source = "./authorized_keys"
+    destination = "~/.ssh/authorized_keys"
   }
 
   # Prometheus
