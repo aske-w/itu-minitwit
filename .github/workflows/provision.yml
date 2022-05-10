@@ -60,7 +60,7 @@ jobs:
           echo "chmodded bootstrap"
           pwd
           ls
-          ./bootstrap.sh
+          sudo ./bootstrap.sh
 
 
 
