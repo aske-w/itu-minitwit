@@ -77,6 +77,7 @@ jobs:
           echo "Created private key"
           echo ${{ secrets.PROV_SSH_PRIVATE }} | base64 -d > ./ssh_key/terraform
 
+          eval `ssh-agent -s`
           ssh-add ./ssh_key/terraform
       
           echo "Reading public key"
