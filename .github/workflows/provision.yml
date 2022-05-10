@@ -21,7 +21,7 @@ jobs:
         working-directory: ./terraform
         run: |
           # TODO remove
-          exit 0
+          #exit 0
           echo "Setting backend secrets"
 
           export ACCESS_KEY=${{ secrets.ACCESS_KEY }}
@@ -64,8 +64,6 @@ jobs:
           export TF_VAR_prometheus_backup_interval=${{ secrets.PROMETHEUS_BACKUP_INTERVAL }}
           export TF_VAR_space_endpoint=${{ secrets.SPACE_ENDPOINT }}" > secrets
 
-          echo $PRIV_KEY
-          echo $PUB_KEY
           echo "------"
           echo $TF_VAR_do_token
           echo ${{ secrets.TF_VAR_DO_TOKEN }}
