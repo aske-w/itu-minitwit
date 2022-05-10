@@ -30,14 +30,23 @@ jobs:
           echo "Setting other secrets"
 
           export TF_VAR_do_token=${{ secrets.TF_VAR_DO_TOKEN }}
+          echo "length of TF_VAR_do_token is ${#TF_VAR_do_token}"
           export TF_VAR_state_file=STATE_FILE
+          echo "length of TF_VAR_state_file is ${#TF_VAR_state_file}"
           export TF_VAR_manager_ip=${{ secrets.XSERVER_IP }}
+          echo "length of TF_VAR_manager_ip is ${#TF_VAR_manager_ip}"
           export TF_VAR_bucket_name=BUCKET_NAME
+          echo "length of TF_VAR_bucket_name is ${#TF_VAR_bucket_name}"
           export TF_VAR_access_key=ACCESS_KEY
+          echo "length of TF_VAR_access_key is ${#TF_VAR_access_key}"
           export TF_VAR_secret_key=SECRET_KEY
+          echo "length of TF_VAR_secret_key is ${#TF_VAR_secret_key}"
           export TF_VAR_stack_name=${{ secrets.STACK_NAME }}
+          echo "length of TF_VAR_stack_name is ${#TF_VAR_stack_name}"
           export TF_VAR_prometheus_backup_interval=${{ secrets.PROMETHEUS_BACKUP_INTERVAL }}
+          echo "length of TF_VAR_prometheus_backup_interval is ${#TF_VAR_prometheus_backup_interval}"
           export TF_VAR_space_endpoint=${{ secrets.SPACE_ENDPOINT }}
+          echo "length of TF_VAR_space_endpoint is ${#TF_VAR_space_endpoint}"
 
           echo $PRIV_KEY
           echo $PUB_KEY
@@ -64,6 +73,8 @@ jobs:
           echo "chmodded bootstrap"
           pwd
           ls
+
+
           sudo ./bootstrap.sh
 
 
