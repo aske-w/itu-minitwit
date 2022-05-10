@@ -100,7 +100,7 @@ resource "digitalocean_droplet" "swarm-worker" {
   region = var.region
   size = var.worker_size
   # add public ssh key so we can access the machine
-  ssh_keys = [digitalocean_ssh_key.*.fingerprint]
+  ssh_keys = [digitalocean_ssh_key.minitwit.fingerprint]
 
   # specify a ssh connection
   connection {
