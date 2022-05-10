@@ -1,10 +1,10 @@
 manager_tags=["terra-manager"]
 manager_count=1
-manager_size="s-1vcpu-1gb"
+manager_size="s-2vcpu-4gb"
 manager_name="manager"
 worker_tags=["terra-worker"]
 worker_count=1
-worker_size="s-1vcpu-1gb"
+worker_size="s-2vcpu-4gb"
 worker_name="worker"
 image="docker-18-04"
 region="fra1"
