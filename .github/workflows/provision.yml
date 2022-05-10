@@ -78,7 +78,7 @@ jobs:
           echo ${{ secrets.PROV_SSH_PRIVATE }} | base64 -d > ./ssh_key/terraform
           sudo chmod 600 -R ./ssh_key/
           eval `ssh-agent -s`
-          ssh-add ./ssh_key/terraform
+          sudo ssh-add ./ssh_key/terraform
       
           echo "Reading public key"
           cat ./ssh_key/terraform.pub
