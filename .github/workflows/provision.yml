@@ -76,7 +76,7 @@ jobs:
           # cat ./ssh_key/terraform.pub
           # echo "---Private key---"
           # cat ./ssh_key/terraform
-          mkdir ssh_key
+          mkdir -p ssh_key
           pwd
           ls
           echo "Created dir"
@@ -84,11 +84,11 @@ jobs:
           echo "Created private key"
           echo ${{ secrets.PROV_SSH_PRIVATE }} | base64 -d > ./ssh_key/terraform
 
-          cat ./ssh_key/terraform.pub >> ./authorized_keys
+          # cat ./ssh_key/terraform.pub >> ./authorized_keys
 
-          sudo chmod 600 -R ./ssh_key/
-          eval `ssh-agent -s`
-          sudo ssh-add ./ssh_key/terraform
+          # sudo chmod 600 -R ./ssh_key/
+          # eval `ssh-agent -s`
+          # sudo ssh-add ./ssh_key/terraform
       
           echo "Reading public key"
           cat ./ssh_key/terraform.pub
