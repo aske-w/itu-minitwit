@@ -234,6 +234,10 @@ We can the filter by fields. For example if we only want to see the message of t
 4. SSH into your worker nodes and run their provisioner scripts when the provisioner scripts on the managers tell you to.
 5. Finished. The Docker compose file should be deployed into the swarm.
 
+### IMPORTANT!
+
+When adding the shh_keys to github secret they need to be 64-base encoded
+
 ### CI/CD
 
 On each push to ```master``` the ```deploy``` pipeline is started, which starts a new stack with the following command ```docker stack deploy --compose-file docker-compose.yml $STACK_NAME```. Before deploying the stack we need to copy a set of files to the manager and worker node, which are needed for the ```docker-compose.yml```.
