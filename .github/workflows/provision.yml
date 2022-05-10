@@ -5,7 +5,7 @@ on:
 
 jobs: 
   provision:
-    name: Deploy Site
+    name: Provision
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -39,19 +39,32 @@ jobs:
           export TF_VAR_prometheus_backup_interval=${{ secrets.PROMETHEUS_BACKUP_INTERVAL }}
           export TF_VAR_space_endpoint=${{ secrets.SPACE_ENDPOINT }}
 
-          echo "Setting pub and private keys"
+          echo $PRIV_KEY
+          echo $PUB_KEY
+          echo "------"
+          echo $TF_VAR_do_token
+          echo ${{ secrets.TF_VAR_DO_TOKEN }}
+          echo "------"
 
           mkdir ssh_key
+          pwd
+          ls
           echo "Created dir"
-          echo ${{ secrets.PROV_SSH_PRIVATE }} > ./ssh_key/terraform
-            echo "Created private key"
-          echo ${{ secrets.PROV_SSH_PUBLIC }} > ./ssh_key/terraform.pub
+          echo ${{ secrets.PROV_SSH_PUBLIC }} | base64 -d > ./ssh_key/terraform.pub
+          echo "Created private key"
+          echo ${{ secrets.PROV_SSH_PRIVATE }} | base64 -d > ./ssh_key/terraform
       
+          echo "Reading public key"
+          cat ./ssh_key/terraform.pub
+
+          echo "Reading private key"
+          cat ./ssh_key/terraform
+
           chmod +x ./bootstrap.sh
           echo "chmodded bootstrap"
           pwd
           ls
-          ./bootstrap.sh
+          sudo ./bootstrap.sh
 
 
 
