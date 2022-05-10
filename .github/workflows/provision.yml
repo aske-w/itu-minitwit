@@ -71,9 +71,6 @@ jobs:
           echo ${{ secrets.TF_VAR_DO_TOKEN }}
           echo "------"
 
-          #chmod +x ./genKeys.sh
-          # ./genKeys.sh
-
           # echo "---Public key---"
           # cat ./ssh_key/terraform.pub
           # echo "---Private key---"
