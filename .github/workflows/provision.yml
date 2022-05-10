@@ -20,6 +20,8 @@ jobs:
       - name: start provision script
         working-directory: ./terraform
         run: |
+          # TODO remove
+          exit 0
           echo "Setting backend secrets"
 
           export ACCESS_KEY=${{ secrets.ACCESS_KEY }}
