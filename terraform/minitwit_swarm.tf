@@ -71,7 +71,7 @@ resource "digitalocean_droplet" "swarm-manager" {
 
   # save the worker join token
   provisioner "local-exec" {
-    command = "mkdir temp"
+    command = "mkdir -p temp"
   }
   provisioner "local-exec" {
     command = "chmod -R 600 ssh_key"
