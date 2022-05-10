@@ -1,0 +1,12 @@
+manager_tags=["terra-manager"]
+manager_count=1
+manager_size="s-1vcpu-1gb"
+manager_name="manager"
+worker_tags=["terra-worker"]
+worker_count=1
+worker_size="s-1vcpu-1gb"
+worker_name="worker"
+image="docker-18-04"
+region="fra1"
+pub_key = "./ssh_key/terraform.pub"
+pvt_key = "./ssh_key/terraform"
