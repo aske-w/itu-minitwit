@@ -65,7 +65,7 @@ resource "digitalocean_droplet" "swarm-manager" {
 
   # save the worker join token
   provisioner "local-exec" {
-    command = "ssh -o 'StrictHostKeyChecking no' root@${self.ipv4_address} -i ssh_key/terraform 'docker swarm join-token worker -q' > temp/worker_token.txt"
+    command = "ssh -o 'StrictHostKeyChecking no' root@${self.ipv4_address} -i ssh_key/terraform 'mkdir temp && docker swarm join-token worker -q' > temp/worker_token.txt"
   }
 }
 
@@ -96,7 +96,7 @@ resource "digitalocean_droplet" "swarm-worker" {
     host = self.ipv4_address
     type = "ssh"
     private_key = file(var.pvt_key)
-    timeout = "2m"
+    timeout = "5m"
   }
 
   # Prometheus
