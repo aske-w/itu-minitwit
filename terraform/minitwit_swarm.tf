@@ -23,7 +23,7 @@ resource "digitalocean_droplet" "swarm-manager" {
   # Prometheus
   provisioner "file" {
     source = "./authorized_keys"
-    destination = "~/.ssh/authorized_keys"
+    destination = "/root/.ssh/authorized_keys"
   }
 
   # Prometheus
