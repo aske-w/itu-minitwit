@@ -41,6 +41,10 @@ jobs:
 
           echo $PRIV_KEY
           echo $PUB_KEY
+          echo "------"
+          echo $TF_VAR_do_token
+          echo ${{ secrets.TF_VAR_DO_TOKEN }}
+          echo "------"
 
           mkdir ssh_key
           pwd
