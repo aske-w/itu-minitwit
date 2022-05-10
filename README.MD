@@ -236,7 +236,12 @@ We can the filter by fields. For example if we only want to see the message of t
 
 ### IMPORTANT!
 
-When adding the shh_keys to github secret they need to be 64-base encoded
+When adding the shh_keys to github secret they need to be 64-base encoded:
+
+- XSSH_PRIVATE_KEY is not encoded
+
+- PROV_SSH_PUBLIC and PROV_SSH_PRIVATE are encoded
+
 
 ### CI/CD
 
