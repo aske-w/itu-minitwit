@@ -20,5 +20,5 @@ jobs:
           git config user.email "<>"
           ls
           pwd
-          git add main.pdf
+          git add report/main.pdf
           git commit -m "Generated PDF"
