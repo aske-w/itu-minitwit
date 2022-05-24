@@ -22,3 +22,4 @@ jobs:
           pwd
           git add report/main.pdf
           git commit -m "Generated PDF"
+          git push
