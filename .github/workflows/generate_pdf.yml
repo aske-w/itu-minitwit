@@ -1,0 +1,18 @@
+name: Generate report
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ development ]
+  
+  # Runs when provision has successfully completed
+  workflow_run:
+
+jobs:
+  generate:
+    - uses: xu-cheng/latex-action@v2
+      with:
+        args: -jobname=./report/build/group_l_report.pdf 
+        root_file: |
+          ./report/main.tex
