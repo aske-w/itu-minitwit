@@ -18,6 +18,6 @@ jobs:
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v2
         with:
-          args: -output-directory=./report/build
           working_directory: ./report
-          root_file: ./report/main.tex
+          args: -output-directory=./build
+          root_file: ./main.tex
