@@ -4,7 +4,6 @@ on:
     branches:
       - development
       - main
-      - feature/report
 jobs:
   build_latex:
     runs-on: ubuntu-latest
