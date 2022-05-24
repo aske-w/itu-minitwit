@@ -18,5 +18,5 @@ jobs:
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v2
         with:
-          args: -jobname=./report/build/group_l_report.pdf 
+          args: -output-directory="./report/build"
           root_file: ./report/main.tex
