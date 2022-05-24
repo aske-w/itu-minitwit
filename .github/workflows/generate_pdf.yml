@@ -16,6 +16,8 @@ jobs:
             latexmk -c
       - name: commit
         run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
           ls
           pwd
           git commit -am "pdf"
