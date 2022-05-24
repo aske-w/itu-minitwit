@@ -13,5 +13,6 @@ jobs:
             biber main
             pdflatex main
             pdflatex main
+          run: |
             git add main.pdf
             git commit -m "Generated report PDF"
