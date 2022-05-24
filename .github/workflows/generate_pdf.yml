@@ -10,14 +10,13 @@ on:
   workflow_run:
 
 jobs:
-  generate:
-  - uses: xu-cheng/latex-action@v2
-    with:
-      args: -jobname=./report/build/group_l_report.pdf 
-      root_file: |
-        ./report/main.tex
-    # - uses: xu-cheng/latex-action@v2
-    #   with:
-    #     args: -jobname=./report/build/group_l_report.pdf 
-    #     root_file: |
-    #       ./report/main.tex
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v2
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v2
+        with:
+          args: -jobname=./report/build/group_l_report.pdf 
+          root_file: ./report/main.tex
