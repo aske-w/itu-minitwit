@@ -19,5 +19,10 @@ jobs:
         uses: xu-cheng/latex-action@v2
         with:
           working_directory: ./report
-          args: -output-directory=./build
+          args: -output-directory=./
           root_file: ./main.tex
+          post_compile: |
+            biber main
+            pdflatex main
+            pdflatex main
+            latexmk -c
