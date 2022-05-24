@@ -7,7 +7,7 @@ on:
     branches: [ development ]
   
   # Runs when provision has successfully completed
-  workflow_run:
+  workflow_dispatch:
 
 jobs:
   build_latex:
