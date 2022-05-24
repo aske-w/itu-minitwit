@@ -28,7 +28,7 @@ The application contains multiple assets that potentially could be vulnerable:
 1. Attacker inputs javascript in an input field and accesses data of another user
 1. Attacker is able to socially engineer a group member to expose a secret.
 1. Attacker uses DDoS crash or halt our server or database.
-1. Since we have no requirements for passwords, it's possible for the users to create single letter or number passwords. Ths would make it very easy for the attacker to guess.
+1. Since we have no requirements for passwords, it's possible for the users to create single letter or number passwords. This would make it very easy for the attacker to guess.
 
 ## B. Risk Analysis
 
