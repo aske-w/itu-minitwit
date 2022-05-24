@@ -11,8 +11,13 @@ on:
 
 jobs:
   generate:
-    - uses: xu-cheng/latex-action@v2
-      with:
-        args: -jobname=./report/build/group_l_report.pdf 
-        root_file: |
-          ./report/main.tex
+  - uses: xu-cheng/latex-action@v2
+    with:
+      args: -jobname=./report/build/group_l_report.pdf 
+      root_file: |
+        ./report/main.tex
+    # - uses: xu-cheng/latex-action@v2
+    #   with:
+    #     args: -jobname=./report/build/group_l_report.pdf 
+    #     root_file: |
+    #       ./report/main.tex
