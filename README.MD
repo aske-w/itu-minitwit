@@ -170,6 +170,8 @@ docker-compose -d will run prometheus and grafana. If you are running the go ser
 else specify localhost://8080.
 In order to add data source in Grafana, in Grafana navigate to configuration/Data sources and press "Add Data Source". Select prometheues and set the `url` to the host of promeheues (http://localhost:9090). Then it's possible to create Dashboard with the different metrics.
 
+If you get errors along the lines of unsequential data in the `wal` or `chunks_head` directory, retain the lowest sequence of file names in `wal` and do `rm -Rf chunks_head` to remove the `chunks_head` directory. No data will be lost. But remember to back it up anyway.
+
 ### Creating Dashboard in Grafana
 
 Once promotheues has been added as a data source we can under dashboard/new `add a new panel`. We can for example monitor the different container memory usage in bytes by this query `sum(container_memory_usage_bytes{name=~".+"}) by(name)`. It only shows containers with a name.
@@ -233,6 +235,15 @@ We can the filter by fields. For example if we only want to see the message of t
 3. SSH into your manager nodes and run their provisioner scripts.
 4. SSH into your worker nodes and run their provisioner scripts when the provisioner scripts on the managers tell you to.
 5. Finished. The Docker compose file should be deployed into the swarm.
+
+### IMPORTANT!
+
+When adding the shh_keys to github secret they need to be 64-base encoded:
+
+- XSSH_PRIVATE_KEY is not encoded
+
+- PROV_SSH_PUBLIC and PROV_SSH_PRIVATE are encoded
+
 
 ### CI/CD
 

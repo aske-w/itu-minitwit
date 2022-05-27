@@ -5,11 +5,13 @@ volumes:
   elk_elasticsearch_data:
   db_data:
 
+
 networks:
   elk:
   main:
     name: itu-minitwit-network
-  monitoring: # network for prometheus to scrape in a swarm
+  monitoring:
+    # network for prometheus to scrape in a swarm
     driver: overlay
 
 services:
@@ -68,7 +70,6 @@ services:
     ports:
       - "9090:9090"
 
-
   s3vol:
     image: elementar/s3-volume
     command: /data s3://${BUCKET_NAME:?err}/prom_data/
@@ -77,10 +78,11 @@ services:
       - AWS_ACCESS_KEY_ID=${ACCESS_KEY:?err}
       - AWS_SECRET_ACCESS_KEY=${SECRET_KEY:?err}
       - ENDPOINT_URL=${SPACE_ENDPOINT:?err}
-      - affinity:container==prometheus
+      # - affinity:container==prometheus
     volumes:
       - /var/prom_data/:/data
-
+    links:
+      - prometheus
 
   cadvisor:
     image: google/cadvisor:v0.24.1
@@ -92,7 +94,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    ports: 
+    ports:
       - "8081:8080"
     networks:
       - monitoring

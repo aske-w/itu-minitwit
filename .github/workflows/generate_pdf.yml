@@ -1,0 +1,29 @@
+name: Build LaTeX document
+on: 
+  push:
+    branches:
+      - development
+      - main
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: xu-cheng/texlive-action/full@v1
+        with:
+          run: |
+            cd ./report
+            pdflatex main
+            biber main
+            pdflatex main
+            pdflatex main
+            latexmk -c
+      - name: commit
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          rm -f report/build/main.pdf
+          cp report/main.pdf report/build/main.pdf
+          git add report/build/main.pdf
+          git commit -m "Generated PDF"
+          git push
